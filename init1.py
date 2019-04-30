@@ -43,13 +43,22 @@ def searchAuth():
 		query += 'UNION '
 		query += 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime FROM departure, arrival WHERE departure.flight_num = arrival.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
 		cursor.execute(query, (source, destination, dtime + '%',destination, source, atime + '%'))
-	print(query)
 	#stores the results in a variable
 	data = cursor.fetchall()
 	#use fetchall() if you are expecting more than 1 data row
 	cursor.close()
-	print(data)
 	return render_template('flight.html', posts=data)
+
+@app.route('/flight_status', methods=['GET', 'POST'])
+def searchStatus():
+	airline = request.form['airline']
+	flight_num = request.form['flight_num']
+	cursor = conn.cursor()
+	query = 'SELECT airline_name, flight_num, status FROM flight WHERE airline_name = %s AND flight_num = %s'
+	cursor.execute(query, (airline, flight_num))
+	data = cursor.fetchall()
+	cursor.close()
+	return render_template('flight_status.html', posts=data)
 
 # ============================================================================================ #
 
@@ -62,6 +71,34 @@ def login():
 @app.route('/register')
 def register():
 	return render_template('register.html')
+
+@app.route('/register_Customer', methods=['GET', 'POST'])
+def register_Customer():
+	username = request.form['username']
+	password = request.form['password']
+	name = request.form['name']
+	phone = request.form['phone']
+	date_of_birth = request.form['date_of_birth']
+	building_number = request.form['building_number']
+	street = request.form['street']
+	city = request.form['city']
+	state = request.form['state']
+	passport_number = request.form['passport_number']
+	passport_expiration = request.form['passport_expiration']
+	passport_country = request.form['passport_country']
+	cursor = conn.cursor()
+	query = 'SELECT * FROM customer WHERE email = %s'
+	cursor.execute(query, (username))
+	data = cursor.fetchone()
+	if(data):
+		error = "You have an account, please login directly"
+		return render_template('register.html', error = error)
+	else:
+		ins = 'INSERT INTO customer VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+		cursor.execute(ins,(username,password,name,building_number,street,city,state,phone,passport_number,passport_expiration,passport_country,date_of_birth))
+		conn.commit()
+		cursor.close()
+		return render_template('index.html')
 
 #Authenticates the login
 @app.route('/loginAuth', methods=['GET', 'POST'])
@@ -96,6 +133,7 @@ def registerAuth():
 	#grabs information from the forms
 	username = request.form['username']
 	password = request.form['password']
+	identification = request.option
 
 	#cursor used to send queries
 	cursor = conn.cursor()

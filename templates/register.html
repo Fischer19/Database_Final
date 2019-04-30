@@ -1,15 +1,66 @@
+<!DOCTYPE html>
 <html>
-<head>
-</head>
 <body>
-<form action="/registerAuth" method="POST">
-	<input type="text" name = "username" placeholder="username" required/> </br>
-	<input type="password" name = "password" placeholder="password" required/></br>
-	<input type="submit" value = Register />
-	{% if error %}
-		<p class="error"><strong>Error:</strong> {{error}}</p>
-	{% endif %}
-</form>
-<a href="/">Go back</a>
+
+{% if error %}
+	<p class="error"><strong>Error:</strong> {{error}}</p>
+{% endif %}
+
+Please select user type: <select id="mySelect" onchange="myFunction()">
+  <option value="Empty">
+  <option value="Customer">Customer
+  <option value="Agent">Booking Agent
+  <option value="Staff">Airline Staff
+</select>
+
+<p id="demo"></p>
+
+<script>
+function myFunction() {
+    var x = document.getElementById("mySelect").value;
+	if (x=="Empty"){
+		document.getElementById("demo").innerHTML = "";
+	}
+	if (x=="Customer"){
+		document.getElementById("demo").innerHTML = '<form action="/register_Customer" method="POST">\
+			username:<input type="text" name = "username" placeholder="username" required/> </br>\
+			password:<input type="password" name = "password" placeholder="password" required/></br>\
+			name:<input type="text" name = "name" placeholder="name" required/></br>\
+			phone:<input type="text" name = "phone" placeholder="phone" required/></br>\
+			date_of_birth:<input type="date" name = "date_of_birth" placeholder="date_of_birth" required/></br>\
+			building_number:<input type="text" name = "building_number" placeholder="building_number" required/></br>\
+			street:<input type="text" name = "street" placeholder="street" required/></br>\
+			city:<input type="text" name = "city" placeholder="city" required/></br>\
+			state:<input type="text" name = "state" placeholder="state" required/></br>\
+			passport_number:<input type="text" name = "passport_number" placeholder="passport_number" required/></br>\
+			passport_expiration: <input type="date" name = "passport_expiration" placeholder="passport_expiration" required/></br>\
+			passport_country:<input type="text" name = "passport_country" placeholder="passport_country" required/></br>\
+			<input type="submit" value = Register />\
+			</form>';
+	}
+	if (x=="Staff"){
+		document.getElementById("demo").innerHTML = '<form action="/register_Staff" method="POST">\
+			username:<input type="text" name = "username" placeholder="username" required/> </br>\
+			password:<input type="password" name = "password" placeholder="password" required/></br>\
+			first_name:<input type="text" name = "first_name" placeholder="first_name" required/></br>\
+			last_name:<input type="text" name = "last_name" placeholder="last_name" required/></br>\
+			date_of_birth:<input type="date" name = "date_of_birth" placeholder="date_of_birth" required/></br>\
+			airline_name:<input type="text" name = "airline_name" placeholder="airline_name" required/></br>\
+			<input type="submit" value = Register />\
+			</form>';
+	}
+	if (x=="Agent"){
+		document.getElementById("demo").innerHTML = '<form action="/register_Agent" method="POST">\
+			username:<input type="text" name = "username" placeholder="username" required/> </br>\
+			password:<input type="password" name = "password" placeholder="password" required/></br>\
+			<input type="submit" value = Register />\
+			</form>';
+	}
+}
+</script>
+
+
+<a href="/">Back</a>
+
 </body>
 </html>

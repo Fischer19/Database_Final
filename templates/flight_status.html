@@ -1,0 +1,30 @@
+<html>
+<head>
+</head>
+<body>
+
+<style type="text/css">
+	table, th, td{
+		border: 1px solid black;
+	}
+</style>
+
+<table>
+	<th>Flight number</th>
+	<th>Airline</th>
+	<th>Status</th>
+
+{% for line in posts %}
+	<tr>
+		<td>{{line['flight_num']}}</td>
+		<td>{{line['airline_name']}}</td>
+		<td>{{line['status']}}</td>
+	</tr>
+{% endfor %}
+</table>
+
+
+</body>
+
+
+</html>

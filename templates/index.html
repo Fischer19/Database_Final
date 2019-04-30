@@ -12,16 +12,36 @@
 {% endif %}
 
 
+<h>
+	<br>
+	Flight searching
+</h>
+
 <form action="/searchAuth" method="POST">
 	<input type="text" name = "source" placeholder="source city" required/> </br>
 	<input type="text" name = "destination" placeholder="destination city" required/></br>
-	<input type="text" name = "departure date" placeholder="departure date" required/> </br>
-	<input type="text" name = "arrival date" placeholder="arrival date"/></br>
+	<input type="date" name = "departure date" placeholder="departure date" required/> </br>
+	<input type="date" name = "arrival date" placeholder="arrival date"/></br>
 	<input type="submit" value = Search />
 	{% if error %}
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
 </form>
+
+<h>
+	<br>
+	Flight status searching
+</h>
+
+<form action="/flight_status" method="POST">
+	<input type="text" name = "airline" placeholder="airline name" required/> </br>
+	<input type="text" name = "flight_num" placeholder="flight number" required/></br>
+	<input type="submit" value = Search />
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+</form>
+
 
 
 <table>
