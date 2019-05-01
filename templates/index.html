@@ -43,19 +43,6 @@
 </form>
 
 
-
-<table>
-	<th>Flight_num</th>
-	<th>Status</th>
-
-{% for line in posts %}
-	<tr>
-		<td>{{line['flight_num']}}</td>
-		<td>{{line['status']}}</td>
-	</tr>
-{% endfor %}
-</table>
-
 {% if message %}
 	<a href="/logout">Logout</a>
 	<a href="/remove_account">Remove Account</a>
