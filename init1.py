@@ -13,6 +13,14 @@ conn = pymysql.connect(host='192.168.64.2',
                        db='airline_ticket_reservation',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
+"""
+conn = pymysql.connect(host='192.168.64.2',
+                       user='zjy',
+                       password='',
+                       db='blog',
+                       charset='utf8mb4',
+                       cursorclass=pymysql.cursors.DictCursor)
+					   """
 
 #Define a route to hello function
 @app.route('/')
