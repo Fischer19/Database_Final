@@ -1,0 +1,34 @@
+<html>
+<head>
+</head>
+<body>
+
+<style type="text/css">
+	table, th, td{
+		border: 1px solid black;
+	}
+</style>
+
+<table>
+	<th>Flight number</th>
+	<th>Departure time</th>
+	<th>Arrival time</th>
+	<th>Base price</th>
+	<th>Purchase</th>
+
+{% for line in posts %}
+	<tr>
+		<td>{{line['flight_num']}}</td>
+		<td>{{line['dtime']}}</td>
+		<td>{{line['atime']}}</td>
+		<td>{{line['bprice']}}</td>
+		<td><input type="checkbox" name=line['flight_num']></td>
+	</tr>
+{% endfor %}
+</table>
+
+
+</body>
+
+
+</html>

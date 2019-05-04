@@ -10,7 +10,7 @@
 </form>
 
 <br>
-<h2>View My Flight</h2>
+<h2>View my future flights</h2>
 <table>
 	<th>Flight number</th>
 	<th>Airline</th>
@@ -24,6 +24,19 @@
 	</tr>
 {% endfor %}
 </table>
+
+<h2>Search for flights</h2>
+
+<form action="/purchaseAuth" method="POST">
+	<input type="text" name = "source" placeholder="source city" required/> </br>
+	<input type="text" name = "destination" placeholder="destination city" required/></br>
+	<input type="date" name = "departure date" placeholder="departure date" required/> </br>
+	<input type="date" name = "arrival date" placeholder="arrival date"/></br>
+	<input type="submit" value = Search />
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+</form>
 
 <style type="text/css">
 	table, th, td{

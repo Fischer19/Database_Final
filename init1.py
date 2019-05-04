@@ -227,12 +227,35 @@ def login_Agent():
 def home_agent():
 	username = session['username']
 	cursor = conn.cursor();
-	query = 'SELECT flight_num, airline_name, ticket_ID FROM booking_agent, purchases, order_info WHERE booking_agent.booking_agent_ID = purchases.booking_agent_ID and purchases.order_ID = order_info.order_ID and email = %s'
+	query = 'SELECT order_info.flight_num flight_num, departure.airline_name airline_name, ticket_ID, time FROM booking_agent, purchases, order_info, departure WHERE booking_agent.booking_agent_ID = purchases.booking_agent_ID and purchases.order_ID = order_info.order_ID and order_info.flight_num = departure.flight_num and email = %s and departure.time >= NOW()'
 	cursor.execute(query, (username))
 	data = cursor.fetchall()
 	print(data)
 	cursor.close()
 	return render_template('home_booking_agent.html', username=username, posts = data)
+
+@app.route('/purchaseAuth', methods = ['POST','GET'])
+def purchaseAuth():
+	source = request.form['source']
+	destination = request.form['destination']
+	dtime = request.form['departure date']
+	atime = request.form['arrival date']
+	#cursor used to send queries
+	cursor = conn.cursor()
+	#executes query
+	if atime == '':
+		query = 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime, flight.base_price bprice FROM departure, arrival, flight WHERE departure.flight_num = arrival.flight_num AND departure.flight_num = flight.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
+		cursor.execute(query, (source, destination, dtime + '%'))
+	else:
+		query = 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime, flight.base_price bprice FROM departure, arrival, flight WHERE departure.flight_num = arrival.flight_num AND departure.flight_num = flight.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
+		query += 'UNION '
+		query += 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime, flight.base_price bprice FROM departure, arrival, flight WHERE departure.flight_num = arrival.flight_num AND arrival.flight_num = flight.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
+		cursor.execute(query, (source, destination, dtime + '%',destination, source, atime + '%'))
+	#stores the results in a variable
+	data = cursor.fetchall()
+	#use fetchall() if you are expecting more than 1 data row
+	cursor.close()
+	return render_template('purchase_agent.html', posts=data)
 
 @app.route('/home')
 def home():
