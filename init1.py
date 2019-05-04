@@ -215,12 +215,24 @@ def login_Agent():
 	if(data):
 		#creates a session for the the user
 		#session is a built in
-		session['username'] = username
-		return redirect(url_for('home'))
+		session['username'] = email
+		return redirect(url_for('home_agent'))
 	else:
 		#returns an error message to the html page
 		error = 'Invalid login or username'
 		return render_template('login.html', error=error)
+
+
+@app.route('/home_agent')
+def home_agent():
+	username = session['username']
+	cursor = conn.cursor();
+	query = 'SELECT flight_num, airline_name, ticket_ID FROM booking_agent, purchases, order_info WHERE booking_agent.booking_agent_ID = purchases.booking_agent_ID and purchases.order_ID = order_info.order_ID and email = %s'
+	cursor.execute(query, (username))
+	data = cursor.fetchall()
+	print(data)
+	cursor.close()
+	return render_template('home_booking_agent.html', username=username, posts = data)
 
 @app.route('/home')
 def home():

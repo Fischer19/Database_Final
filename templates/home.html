@@ -2,6 +2,9 @@
 <head>
 </head>
 <body>
+{% if error %}
+	<p class="error"><strong>Error:</strong> {{error}}</p>
+{% endif %}
 <form action="/post" method="POST">
 	<h1>Welcome {{username}}</h1>
 </form>
