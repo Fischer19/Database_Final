@@ -162,7 +162,7 @@ def login_Customer():
 		#creates a session for the the user
 		#session is a built in
 		session['username'] = username
-		return redirect(url_for('home'))
+		return redirect(url_for('home_Customer'))
 	else:
 		#returns an error message to the html page
 		error = 'Invalid login or username'
@@ -226,10 +226,69 @@ def login_Agent():
 def home():
     
     username = session['username']
-    cursor = conn.cursor();
+    cursor = conn.cursor()
 
     return render_template('home.html', username=username)
 
+@app.route('/home_Customer')
+def home_Customer():
+    
+    username = session['username']
+    cursor = conn.cursor()
+
+    return render_template('home_Customer.html', username=username)
+
+
+
+#Use case 5. Search for flights
+
+#Use case 6. Purchase tickets
+
+#Use case 7. Track my spending
+
+#Use case 8. Logout
+
+
+@app.route('/myFutureFlights', methods=['GET', 'POST'])
+def myFutureFlights():
+	#cursor used to send queries
+	cursor = conn.cursor()
+	#specifies username
+	username = session['username']
+	#executes query
+	query = 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime FROM purchases NATURAL JOIN order_info, departure, arrival WHERE buyer_email = %s AND departure.flight_num = order_info.flight_num AND arrival.flight_num = order_info.flight_num'
+	cursor.execute(query, username)
+	#stores the results in a variable
+	data = cursor.fetchall()
+	#use fetchall() if you are expecting more than 1 data row
+	cursor.close()
+	return render_template('flight.html', posts=data)
+
+@app.route('/myFlights', methods=['GET', 'POST'])
+def myFlights():
+	#grabs information from the forms
+	source = request.form['source']
+	destination = request.form['destination']
+	dtime = request.form['departure date']
+	atime = request.form['arrival date']
+	#cursor used to send queries
+	cursor = conn.cursor()
+	#specifies username
+	username = session['username']
+	#executes query
+	if atime == '':
+		query = 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime FROM purchases NATURAL JOIN order_info, departure, arrival WHERE buyer_email = %s AND departure.flight_num = order_info.flight_num AND arrival.flight_num = order_info.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
+		cursor.execute(query, (username, source, destination, dtime + '%'))
+	else:
+		query = 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime FROM departure, arrival WHERE departure.flight_num = arrival.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
+		query += 'UNION '
+		query += 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime FROM departure, arrival WHERE departure.flight_num = arrival.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
+		cursor.execute(query, (source, destination, dtime + '%',destination, source, atime + '%'))
+	#stores the results in a variable
+	data = cursor.fetchall()
+	#use fetchall() if you are expecting more than 1 data row
+	cursor.close()
+	return render_template('flight.html', posts=data)
 		
 @app.route('/post', methods=['GET', 'POST'])
 def post():
