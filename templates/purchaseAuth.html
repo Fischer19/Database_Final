@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+{% if error %}
+	<p class="error"><strong>Error:</strong> {{error}}</p>
+{% endif %}
+
+<h2>The flight you want to purchase is {{data}}</h2>
+
+Please select user type: <select id="mySelect" onchange="myFunction()">
+  <option value="Empty">
+  <option value="Customer">Customer
+  <option value="Agent">Booking Agent
+  <option value="Staff">Airline Staff
+</select>
+
+<a href="/">Back</a>
+
+</body>
+</html>

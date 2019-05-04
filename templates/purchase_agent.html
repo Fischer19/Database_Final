@@ -16,15 +16,18 @@
 	<th>Base price</th>
 	<th>Purchase</th>
 
+<form role = "form" action = "/purchaseAuth" method="POST">
 {% for line in posts %}
 	<tr>
 		<td>{{line['flight_num']}}</td>
 		<td>{{line['dtime']}}</td>
 		<td>{{line['atime']}}</td>
 		<td>{{line['bprice']}}</td>
-		<td><input type="checkbox" name=line['flight_num']></td>
+		<td><input type="checkbox" name = "flight_num" value="test"></td>
 	</tr>
 {% endfor %}
+	<input type="submit" value="Purchase" />
+</form>
 </table>
 
 

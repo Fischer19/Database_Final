@@ -234,8 +234,9 @@ def home_agent():
 	cursor.close()
 	return render_template('home_booking_agent.html', username=username, posts = data)
 
-@app.route('/purchaseAuth', methods = ['POST','GET'])
-def purchaseAuth():
+# Handle purchasing in /home, record flight_num information for further activities
+@app.route('/purchase', methods = ['POST','GET'])
+def purchase():
 	source = request.form['source']
 	destination = request.form['destination']
 	dtime = request.form['departure date']
@@ -256,6 +257,15 @@ def purchaseAuth():
 	#use fetchall() if you are expecting more than 1 data row
 	cursor.close()
 	return render_template('purchase_agent.html', posts=data)
+
+# Handle purchase information 
+@app.route("/purchaseAuth", methods = ['POST', 'GET'])
+def purchaseAuth():
+	if request.method == "GET":
+		flight_num = request.args.get("flight_num")
+		print("response:", flight_num)
+	data = flight_num
+	return render_template("purchaseAuth.html", data=data)
 
 @app.route('/home')
 def home():
