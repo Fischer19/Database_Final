@@ -261,8 +261,9 @@ def purchase():
 # Handle purchase information 
 @app.route("/purchaseAuth", methods = ['POST', 'GET'])
 def purchaseAuth():
-	if request.method == "GET":
-		flight_num = request.args.get("flight_num")
+	if request.method == "POST":
+		print(request.form["flight_num"])
+		flight_num = request.form["flight_num"]
 		print("response:", flight_num)
 	data = flight_num
 	return render_template("purchaseAuth.html", data=data)
