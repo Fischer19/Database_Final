@@ -2,6 +2,9 @@
 <head>
 </head>
 <body>
+{% if error %}
+<p class="error"><strong>Error:</strong> {{error}}</p>
+{% endif %}
 <form action="/post" method="POST">
 	<h1>Welcome {{username}}</h1>
 </form>
@@ -13,27 +16,35 @@
 </style>
 
 <!--Use case 4. View my flights-->
-<h>
-	<br>
-	View my flights
-</h>
+<br><h>
+	My Future Flights</h>
 
-<form action="/myFutureFlights" method="POST"></form>
 <table>
-	<th>Flight number</th>
-	<th>Departure time</th>
-	<th>Arrival time</th>
+	<th>Flight Number</th>
+	<th>Airline</th>
+	<th>Departure Time</th>
 
 {% for line in posts %}
 	<tr>
 		<td>{{line['flight_num']}}</td>
+		<td>{{line['airline_name']}}</td>
 		<td>{{line['dtime']}}</td>
-		<td>{{line['atime']}}</td>
 	</tr>
 {% endfor %}
 </table>
 
-<form action="/myFlights" method="POST">
+<style type="text/css">
+	table, th, td{
+		border: 1px solid black;
+	}
+</style>
+
+
+<!--Use case 5. Search for flights-->
+<br><h>
+	Looking for a new trip?</h>
+
+<form action="/purchase" method="POST">
 	<input type="text" name = "source" placeholder="source city" required/> </br>
 	<input type="text" name = "destination" placeholder="destination city" required/></br>
 	<input type="date" name = "departure date" placeholder="departure date" required/> </br>
@@ -43,6 +54,19 @@
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
 </form>
+
+<!--Use case 7. Track my spending-->
+<br><h>
+		Track My Spending</h>
+	
+	<form action="/mySpending" method="POST">
+		<input type="date" name = "stime" placeholder="start time" required/> </br>
+		<input type="date" name = "etime" placeholder="end time"/></br>
+		<input type="submit" value = Search />
+		{% if error %}
+			<p class="error"><strong>Error:</strong> {{error}}</p>
+		{% endif %}
+	</form>
 
 <a href="/logout">Logout</a>
 

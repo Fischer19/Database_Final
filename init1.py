@@ -265,7 +265,10 @@ def purchaseAuth():
 		print(request.form["flight_num"])
 		flight_num = request.form["flight_num"]
 		print("response:", flight_num)
-	data = flight_num
+	cursor = conn.cursor()
+	query = 'SELECT flight.flight_num flight_num, flight.airline_name airline_name, departure.airport_name dairport, arrival.time atime, arrival.airport_name aairport, departure.time dtime, base_price bprice FROM flight, departure, arrival WHERE flight.flight_num = %s AND departure.flight_num = %s AND arrival.flight_num = %s'
+	cursor.execute(query, (flight_num, flight_num, flight_num))
+	data = cursor.fetchone()
 	return render_template("purchaseAuth.html", data=data)
 
 @app.route('/home')
@@ -278,22 +281,45 @@ def home():
 
 @app.route('/home_Customer')
 def home_Customer():
-    
-    username = session['username']
-    cursor = conn.cursor()
+	username = session['username']
+	cursor = conn.cursor()
+	query = 'SELECT departure.flight_num flight_num, order_info.airline_name airline_name, departure.time dtime FROM purchases NATURAL JOIN order_info, departure, arrival WHERE buyer_email = %s AND departure.flight_num = order_info.flight_num AND arrival.flight_num = order_info.flight_num AND departure.time > CURRENT_TIMESTAMP'
+	cursor.execute(query, (username))
+	data = cursor.fetchall()
+	print(data)
+	cursor.close()
+	return render_template('home_Customer.html', username=username, posts = data)
 
-    return render_template('home_Customer.html', username=username)
 
+@app.route('/buy_Customer', methods=['GET', 'POST'])
+def buy_Customer():
+	flight_num = request.form['flight_num']
+	card_exp_date = request.form['card_exp_date']
+	name_on_card = request.form['name_on_card']
+	card_num = request.form['card_num']
+	card_type = request.form['card_type']
 
+	cursor = conn.cursor()
+	query = 'SELECT MAX(order_id) FROM order_info'
+	cursor.execute(query)
+	latest_order = int(cursor.fetchone())
 
-#Use case 5. Search for flights
-
-#Use case 6. Purchase tickets
-
-#Use case 7. Track my spending
-
-#Use case 8. Logout
-
+	cursor = conn.cursor()
+	query = 'SELECT base_price FROM flight WHERE flight_num = %s'
+	cursor.execute(query, (flight_num))
+	sold_price = cursor.fetchone()
+	if(latest_order):
+		ins = 'INSERT INTO order_info VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+		cursor.execute(ins,(str(latest_order + 1),flight_num,airline_name,card_exp_date,name_on_card,card_num,card_type,sold_price))
+		conn.commit()
+		cursor.close()
+		return render_template('success_purchase.html')
+	else:
+		ins = 'INSERT INTO customer VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+		cursor.execute(ins,("0001",flight_num,airline_name,card_exp_date,name_on_card,card_num,card_type,sold_price))
+		conn.commit()
+		cursor.close()
+		return render_template('success_purchase.html')
 
 @app.route('/myFutureFlights', methods=['GET', 'POST'])
 def myFutureFlights():

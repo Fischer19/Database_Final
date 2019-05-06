@@ -6,16 +6,60 @@
 	<p class="error"><strong>Error:</strong> {{error}}</p>
 {% endif %}
 
-<h2>The flight you want to purchase is {{data}}</h2>
+<h2>Details of your chosen flight: </h2>
 
-Please select user type: <select id="mySelect" onchange="myFunction()">
-  <option value="Empty">
-  <option value="Customer">Customer
-  <option value="Agent">Booking Agent
-  <option value="Staff">Airline Staff
-</select>
+<form action="/buy_Customer" method="POST"> 
+  <table>
+    <tr>
+      <td>Flight No.: </td>
+      <td>{{data['flight_num']}}</td>
+    </tr>
+    <tr>
+      <td>Airline name:</td>
+      <td> {{data['airline_name']}}</td>
+    </tr>
+    <tr>
+      <td>Departure airport: </td>
+      <td>{{data['dairport']}}</td>
+    </tr>
+    <tr>
+      <td>Departure time:</td>
+      <td>{{data['dtime']}}</td>
+    </tr>
+    <tr>
+      <td>Arrival airport:</td>
+      <td>{{data['aairport']}}</td>
+    </tr>
+    <tr>
+      <td>Arrival time:</td>
+      <td>{{data['atime']}}</td>
+    </tr>
+    <tr>
+      <td>Price:</td>
+      <td>￥{{data['bprice']}}</td>
+    </tr>
+    <tr>
+      <td>Card Expiration Date: </td>
+      <td><input type="date" name = "card_exp_date" placeholder="Card Expiration Date" required/></td>
+    </tr>
+    <tr>
+      <td> Name on Card: </td>
+      <td><input type="text" name = "name_on_card" placeholder="Name on Card" required/></td>
+    </tr>
+    <tr>
+      <td>Card No.: </td>
+      <td><input type="text" name = "card_num" placeholder="Card No." required/></td>
+    </tr>
+    <tr>
+      <td>Card Type: </td>
+      <td><input type="text" name = "card_type" placeholder="Card Type" required/></td>
+    </tr>
+  </table>
+  <input type="submit" value = Purchase />
+</form>
 
-<a href="/">Back</a>
+<br>
+<a href="/home_Customer">Home Page</a>
 
 </body>
 </html>
