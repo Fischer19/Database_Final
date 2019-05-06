@@ -8,11 +8,11 @@
 
 <h2>Details of your chosen flight: </h2>
 
-<form action="/buy_Customer" method="POST"> 
+<form id = "information" action="/purchaseComplete" method="POST"> 
   <table>
     <tr>
       <td>Flight No.: </td>
-      <td>{{data['flight_num']}}</td>
+      <td id = flight_num>{{data['flight_num']}}</td>
     </tr>
     <tr>
       <td>Airline name:</td>
@@ -55,8 +55,23 @@
       <td><input type="text" name = "card_type" placeholder="Card Type" required/></td>
     </tr>
   </table>
-  <input type="submit" value = Purchase />
+  <input type="submit" value = Purchase onclick="myFunction()" />
 </form>
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="{{url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
+  <script>
+    function myFunction(){
+      var flight_num = document.getElementById('flight_num').innerText
+      $.ajax({
+                url: "/purchaseComplete",
+                type: "POST",
+                data: {flight_num: flight_num}
+        });
+
+    }
+  </script>
+
 
 <br>
 <a href="/home_Customer">Home Page</a>

@@ -271,6 +271,15 @@ def purchaseAuth():
 	data = cursor.fetchone()
 	return render_template("purchaseAuth.html", data=data)
 
+# After recording purchase information
+@app.route('/purchaseComplete', methods = ['POST'])
+def purchaseComplete1():
+	if request.method == "POST":
+		print(request.form)
+	#print(request.form)
+	return render_template("login.html")
+
+
 @app.route('/home')
 def home():
     
