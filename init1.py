@@ -1,6 +1,7 @@
 #Import Flask Library
 from flask import Flask, render_template, request, session, url_for, redirect
 import pymysql.cursors
+from datetime import datetime
 
 #Initialize the app from Flask
 app = Flask(__name__)
@@ -274,10 +275,61 @@ def purchaseAuth():
 # After recording purchase information
 @app.route('/purchaseComplete', methods = ['POST'])
 def purchaseComplete1():
+	"""
 	if request.method == "POST":
 		print(request.form)
 	#print(request.form)
 	return render_template("login.html")
+	"""
+
+	# 蛇蛇 这里的问题是purchaseAuth.html会post两次内容 所以整个function会跑两次 然后第二次的flight_num就会变成None 我还没想好怎么解决
+	# 另一个bug是时间老是0000-00-00 00：00：00 我也不知道为啥 print出来明明是对的
+	# 目前这个功能的其他东西都已经好了 你可以跑跑看 然后order_info这个表也会被更新
+	# purchases这个表的更新我还没写 包括ticket怎么算也还没写 先休息一下hhh
+
+	print("Form type ", type(request.form))
+	flight_num = str(request.form.get('flight_num'))
+	print("original flight_num", flight_num)
+	card_exp_date = request.form['card_exp_date']
+	name_on_card = request.form['name_on_card']
+	card_num = request.form['card_num']
+	card_type = request.form['card_type']
+
+	print("current flight_num", flight_num)
+
+	cursor = conn.cursor()
+	query = 'SELECT airline_name FROM flight WHERE flight_num = %s'
+	cursor.execute(query, (flight_num))
+	airline_name = cursor.fetchone()
+
+	#cursor = conn.cursor()
+	query = 'SELECT MAX(order_id) FROM order_info'
+	cursor.execute(query)
+	latest_order = int(cursor.fetchone()['MAX(order_id)'])
+	new_order_no = str(latest_order + 1).rjust(4,"0")
+	#print("New Order No. ", new_order_no)
+
+	#cursor = conn.cursor()
+	query = 'SELECT base_price FROM flight WHERE flight_num = %s'
+	cursor.execute(query, (flight_num))
+	sold_price = str(cursor.fetchone())
+
+	purchase_time = str(datetime.now().strftime('%H:%M:%S'))
+	print("current time", purchase_time)
+
+	if(latest_order):
+		ins = 'INSERT INTO order_info VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+		cursor.execute(ins,(new_order_no,flight_num,airline_name,purchase_time,card_exp_date,name_on_card,card_num,card_type,sold_price))
+		conn.commit()
+		cursor.close()
+		return render_template('success_purchase.html')
+	else:
+		ins = 'INSERT INTO order_info VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+		cursor.execute(ins,("0001",flight_num,airline_name,purchase_time,card_exp_date,name_on_card,card_num,card_type,sold_price))
+		conn.commit()
+		cursor.close()
+		return render_template('success_purchase.html')
+
 
 
 @app.route('/home')
@@ -299,36 +351,6 @@ def home_Customer():
 	cursor.close()
 	return render_template('home_Customer.html', username=username, posts = data)
 
-
-@app.route('/buy_Customer', methods=['GET', 'POST'])
-def buy_Customer():
-	flight_num = request.form['flight_num']
-	card_exp_date = request.form['card_exp_date']
-	name_on_card = request.form['name_on_card']
-	card_num = request.form['card_num']
-	card_type = request.form['card_type']
-
-	cursor = conn.cursor()
-	query = 'SELECT MAX(order_id) FROM order_info'
-	cursor.execute(query)
-	latest_order = int(cursor.fetchone())
-
-	cursor = conn.cursor()
-	query = 'SELECT base_price FROM flight WHERE flight_num = %s'
-	cursor.execute(query, (flight_num))
-	sold_price = cursor.fetchone()
-	if(latest_order):
-		ins = 'INSERT INTO order_info VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-		cursor.execute(ins,(str(latest_order + 1),flight_num,airline_name,card_exp_date,name_on_card,card_num,card_type,sold_price))
-		conn.commit()
-		cursor.close()
-		return render_template('success_purchase.html')
-	else:
-		ins = 'INSERT INTO customer VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-		cursor.execute(ins,("0001",flight_num,airline_name,card_exp_date,name_on_card,card_num,card_type,sold_price))
-		conn.commit()
-		cursor.close()
-		return render_template('success_purchase.html')
 
 @app.route('/myFutureFlights', methods=['GET', 'POST'])
 def myFutureFlights():
