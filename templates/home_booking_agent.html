@@ -18,9 +18,9 @@
 
 {% for line in posts %}
 	<tr>
-		<td>{{line['flight_num']}}</td>
-		<td>{{line['airline_name']}}</td>
-		<td>{{line['ticket_ID']}}</td>
+		<td>{{flight_info['flight_num']}}</td>
+		<td>{{flight_info['airline_name']}}</td>
+		<td>{{flight_info['ticket_ID']}}</td>
 	</tr>
 {% endfor %}
 </table>
@@ -37,6 +37,24 @@
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
 </form>
+
+
+<br>
+<h>View My Commission</h>
+	
+	<table>
+	<th>Total Commission</th>
+	<th>Average Commission</th>
+	<th>Total Tickets Sold</th>
+
+	{% for line in posts %}
+		<tr>
+			<td>{{agent_info['tcom']}}</td>
+			<td>{{agent_info['acom']}}</td>
+			<td>{{agent_info['ttickets']}}</td>
+		</tr>
+	{% endfor %}
+	</table>
 
 <style type="text/css">
 	table, th, td{

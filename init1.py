@@ -164,6 +164,7 @@ def login_Customer():
 		#creates a session for the the user
 		#session is a built in
 		session['username'] = username
+		session['id'] = None
 		return redirect(url_for('home_Customer'))
 	else:
 		#returns an error message to the html page
@@ -218,6 +219,7 @@ def login_Agent():
 		#creates a session for the the user
 		#session is a built in
 		session['username'] = email
+		session['id'] = booking_agent_id
 		return redirect(url_for('home_agent'))
 	else:
 		#returns an error message to the html page
@@ -234,7 +236,7 @@ def home_agent():
 	data = cursor.fetchall()
 	print(data)
 	cursor.close()
-	return render_template('home_booking_agent.html', username=username, posts = data)
+	return render_template('home_booking_agent.html', username=username, flight_info = data)
 
 # Handle purchasing in /home, record flight_num information for further activities
 @app.route('/purchase', methods = ['POST','GET'])
@@ -248,6 +250,7 @@ def purchase():
 	#executes query
 	if atime == '':
 		query = 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime, flight.base_price bprice FROM departure, arrival, flight WHERE departure.flight_num = arrival.flight_num AND departure.flight_num = flight.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
+		print(source, destination, dtime + '%')
 		cursor.execute(query, (source, destination, dtime + '%'))
 	else:
 		query = 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime, flight.base_price bprice FROM departure, arrival, flight WHERE departure.flight_num = arrival.flight_num AND departure.flight_num = flight.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
@@ -258,15 +261,15 @@ def purchase():
 	data = cursor.fetchall()
 	#use fetchall() if you are expecting more than 1 data row
 	cursor.close()
-	return render_template('purchase_agent.html', posts=data)
+	return render_template('purchase.html', posts=data)
 
 # Handle purchase information 
 @app.route("/purchaseAuth", methods = ['POST', 'GET'])
 def purchaseAuth():
 	if request.method == "POST":
-		print(request.form["flight_num"])
+		#print(request.form["flight_num"])
 		flight_num = request.form["flight_num"]
-		print("response:", flight_num)
+		#print("response:", flight_num)
 	cursor = conn.cursor()
 	query = 'SELECT flight.flight_num flight_num, flight.airline_name airline_name, departure.airport_name dairport, arrival.time atime, arrival.airport_name aairport, departure.time dtime, base_price bprice FROM flight, departure, arrival WHERE flight.flight_num = %s AND departure.flight_num = %s AND arrival.flight_num = %s'
 	cursor.execute(query, (flight_num, flight_num, flight_num))
@@ -275,7 +278,7 @@ def purchaseAuth():
 
 # After recording purchase information
 @app.route('/purchaseComplete', methods = ['POST'])
-def purchaseComplete1():
+def purchaseComplete():
 	"""
 	if request.method == "POST":
 		print(request.form)
@@ -290,6 +293,7 @@ def purchaseComplete1():
 	name_on_card = request.form['name_on_card']
 	card_num = request.form['card_num']
 	card_type = request.form['card_type']
+	email = request.form['customer_email']
 
 	cursor = conn.cursor()
 	query = 'SELECT airline_name FROM flight WHERE flight_num = %s'
@@ -303,9 +307,11 @@ def purchaseComplete1():
 
 	query = 'SELECT base_price FROM flight WHERE flight_num = %s'
 	cursor.execute(query, (FLIGHT_NUM))
-	sold_price = str(cursor.fetchone())
+	sold_price = str(cursor.fetchone()['base_price'])
 
 	purchase_time = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+
+	print("sold_price:", sold_price)
 
 	if(latest_order):
 		ins = 'INSERT INTO order_info VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
@@ -320,8 +326,9 @@ def purchaseComplete1():
 	cursor.execute(query, (FLIGHT_NUM + "%"))
 	all_tickets = cursor.fetchall()
 	
-	
-	if(all_tickets != []):
+	print(all_tickets)
+
+	if(all_tickets != ()):
 		final_ticket = all_tickets[0]['ticket_ID']
 		for dic in all_tickets:
 			if dic['ticket_ID'] > final_ticket:
@@ -335,11 +342,19 @@ def purchaseComplete1():
 		cursor.execute(ins, (new_ticket))
  
 	ins = 'INSERT INTO purchases VALUES (%s,%s,%s,%s)'
-	cursor.execute(ins, (session['username'], "", new_order_no, new_ticket))
+
+	# For Customer 
+	if session['id'] is None:
+		cursor.execute(ins, (session['username'], "", new_order_no, new_ticket))
+		redirect = 'home_Customer'
+	# For Booking Agent
+	else:
+		cursor.execute(ins, (email, session['id'], new_order_no, new_ticket))
+		redirect = 'home_agent'
 
 	conn.commit()
 	cursor.close()
-	return render_template('success_purchase.html')
+	return render_template('success_purchase.html', redirect = redirect)
 
 
 
@@ -358,7 +373,6 @@ def home_Customer():
 	query = 'SELECT departure.flight_num flight_num, order_info.airline_name airline_name, departure.time dtime FROM purchases NATURAL JOIN order_info, departure, arrival WHERE buyer_email = %s AND departure.flight_num = order_info.flight_num AND arrival.flight_num = order_info.flight_num AND departure.time > CURRENT_TIMESTAMP'
 	cursor.execute(query, (username))
 	data = cursor.fetchall()
-	print(data)
 	cursor.close()
 	return render_template('home_Customer.html', username=username, posts = data)
 
