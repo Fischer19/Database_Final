@@ -470,7 +470,7 @@ def flight():
 
 	return render_template('index.html', username=username, posts=data1)
 
-@app.route('/create_flight')
+@app.route('/create_flight', methods=['GET', 'POST'])
 def create_flight():
 	cursor = conn.cursor()
 
@@ -479,7 +479,7 @@ def create_flight():
 	cursor.execute(auth, (username))
 	auth_list = cursor.fetchall()
 
-	if auth_list:
+	if(auth_list):
 		airline_name = request.form['airline_name']
 		flight_num = request.form['flight_num']
 		bprice = request.form['bprice']
@@ -494,15 +494,21 @@ def create_flight():
 		cursor.execute(ins, (airline_name, flight_num, bprice, airplane_id, status))
 
 		ins = 'INSERT INTO departure VALUES(%s,%s,%s,%s)'
-		cursor.execute(ins, (airline_name, flight_num, bprice, dairport, dtime))
+		cursor.execute(ins, (airline_name, flight_num, dairport, dtime))
 
 		ins = 'INSERT INTO arrival VALUES(%s,%s,%s,%s)'
-		cursor.execute(ins, (airline_name, flight_num, bprice, aairport, atime))
+		cursor.execute(ins, (airline_name, flight_num, aairport, atime))
 
-		return	
+		print('insert success')
+
+		conn.commit()
+		cursor.close()
+		return redirect(url_for('home_staff'))
 	
 	else:
-		return
+		conn.commit()
+		cursor.close()
+		return render_template('unauthorized_warning.html')
 		# maybe show a warning webpage here
 		
 app.secret_key = 'some key that you will never guess'
