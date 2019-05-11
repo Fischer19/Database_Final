@@ -326,7 +326,7 @@ def purchaseComplete():
 	card_num = request.form['card_num']
 	card_type = request.form['card_type']
 	email = request.form['customer_email']
-	commission = request.form['commission']
+	commission = float(cursor.fetchone()['base_price']) * 0.1
 
 	cursor = conn.cursor()
 	query = 'SELECT airline_name FROM flight WHERE flight_num = %s'
@@ -340,7 +340,7 @@ def purchaseComplete():
 
 	query = 'SELECT base_price FROM flight WHERE flight_num = %s'
 	cursor.execute(query, (FLIGHT_NUM))
-	sold_price =  int(cursor.fetchone()['base_price']) + int(commission)
+	sold_price =  int(cursor.fetchone()['base_price']) + float(commission)
 
 	purchase_time = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
