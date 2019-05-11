@@ -64,6 +64,24 @@
 	{% endfor %}
 	</table>
 
+<h2>View My Top Customers</h2>
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+	</form>
+	
+	<table>
+	<th>Customer email</th>
+	<th>Total tickets purchased</th>
+
+	{% for line in top_cus %}
+		<tr>
+			<td>{{line['email']}}</td>
+			<td>{{line['tickets_purchased']}}</td>
+		</tr>
+	{% endfor %}
+	</table>
+
 <style type="text/css">
 	table, th, td{
 		border: 1px solid black;

@@ -237,11 +237,19 @@ def home_agent():
 	cursor1.execute(query1, (username))
 	data1 = cursor1.fetchall()
 	cursor1.close()
+
+	# query for 30 day commissions
 	cursor2 = conn.cursor()
 	query2 = 'SELECT SUM(commission) tcom, AVG(commission) acom, COUNT(purchases.order_ID) ttickets FROM booking_agent, purchases, order_info WHERE booking_agent.booking_agent_ID = purchases.booking_agent_ID AND purchases.order_ID = order_info.order_ID AND booking_agent.booking_agent_ID = %s AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -30 DAY)'
 	cursor2.execute(query2, (ID))
 	data2 = cursor2.fetchall()
-	print(data2)
+
+	# query for top customers
+	cursor4 = conn.cursor()
+	query4 = 'SELECT customer.email email, COUNT(order_ID) tickets_purchased FROM customer, purchases, booking_agent WHERE customer.email = purchases.buyer_email AND purchases.booking_agent_ID = booking_agent.booking_agent_ID AND purchases.booking_agent_ID = %s GROUP BY purchases.buyer_email ORDER BY COUNT(order_ID) DESC LIMIT 5'
+	cursor4.execute(query4, (ID))
+	top_cus = cursor4.fetchall()
+	print(top_cus)
 
 	if request.method == "POST":
 		sdate = request.form['starting date']
@@ -253,9 +261,9 @@ def home_agent():
 		data3 = cursor3.fetchall()
 		print((ID, sdate, edate))
 		print(data3)
-		return render_template('home_booking_agent.html', username=username, flight_info = data1, agent_info = data3)
+		return render_template('home_booking_agent.html', username=username, flight_info = data1, agent_info = data3, top_cus=top_cus)
 	else:
-		return render_template('home_booking_agent.html', username=username, flight_info = data1, agent_info = data2)
+		return render_template('home_booking_agent.html', username=username, flight_info = data1, agent_info = data2, top_cus=top_cus)
 
 # Handle purchasing in /home, record flight_num information for further activities
 @app.route('/purchase', methods = ['POST','GET'])
