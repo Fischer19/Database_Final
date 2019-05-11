@@ -16,11 +16,11 @@
 	<th>Airline</th>
 	<th>Ticket ID</th>
 
-{% for line in posts %}
+{% for line in flight_info %}
 	<tr>
-		<td>{{flight_info['flight_num']}}</td>
-		<td>{{flight_info['airline_name']}}</td>
-		<td>{{flight_info['ticket_ID']}}</td>
+		<td>{{line['flight_num']}}</td>
+		<td>{{line['airline_name']}}</td>
+		<td>{{line['ticket_ID']}}</td>
 	</tr>
 {% endfor %}
 </table>
@@ -38,20 +38,28 @@
 	{% endif %}
 </form>
 
-
 <br>
-<h>View My Commission</h>
+<h2>View My Commission</h2>
+	<h3>Please specify a range</h3>
+	<form action="/home_agent" method="POST">
+	<input type="date" name = "starting date" placeholder="starting date" required/> </br>
+	<input type="date" name = "end date" placeholder="end date"/></br>
+	<input type="submit" value = Search />
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+	</form>
 	
 	<table>
 	<th>Total Commission</th>
 	<th>Average Commission</th>
 	<th>Total Tickets Sold</th>
 
-	{% for line in posts %}
+	{% for line in agent_info %}
 		<tr>
-			<td>{{agent_info['tcom']}}</td>
-			<td>{{agent_info['acom']}}</td>
-			<td>{{agent_info['ttickets']}}</td>
+			<td>{{line['tcom']}}</td>
+			<td>{{line['acom']}}</td>
+			<td>{{line['ttickets']}}</td>
 		</tr>
 	{% endfor %}
 	</table>

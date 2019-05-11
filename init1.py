@@ -227,16 +227,35 @@ def login_Agent():
 		return render_template('login.html', error=error)
 
 
-@app.route('/home_agent')
+@app.route('/home_agent', methods = ['GET', 'POST'])
 def home_agent():
 	username = session['username']
-	cursor = conn.cursor();
-	query = 'SELECT order_info.flight_num flight_num, departure.airline_name airline_name, ticket_ID, time FROM booking_agent, purchases, order_info, departure WHERE booking_agent.booking_agent_ID = purchases.booking_agent_ID and purchases.order_ID = order_info.order_ID and order_info.flight_num = departure.flight_num and email = %s and departure.time >= NOW()'
-	cursor.execute(query, (username))
-	data = cursor.fetchall()
-	print(data)
-	cursor.close()
-	return render_template('home_booking_agent.html', username=username, flight_info = data)
+	ID = session['id']
+	print(username)
+	cursor1 = conn.cursor();
+	query1 = 'SELECT order_info.flight_num flight_num, departure.airline_name airline_name, ticket_ID, time FROM booking_agent, purchases, order_info, departure WHERE booking_agent.booking_agent_ID = purchases.booking_agent_ID and purchases.order_ID = order_info.order_ID and order_info.flight_num = departure.flight_num and booking_agent.email = %s and departure.time >= NOW()'
+	cursor1.execute(query1, (username))
+	data1 = cursor1.fetchall()
+	cursor1.close()
+	cursor2 = conn.cursor()
+	query2 = 'SELECT SUM(commission) tcom, AVG(commission) acom, COUNT(purchases.order_ID) ttickets FROM booking_agent, purchases, order_info WHERE booking_agent.booking_agent_ID = purchases.booking_agent_ID AND purchases.order_ID = order_info.order_ID AND booking_agent.booking_agent_ID = %s AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -30 DAY)'
+	cursor2.execute(query2, (ID))
+	data2 = cursor2.fetchall()
+	print(data2)
+
+	if request.method == "POST":
+		sdate = request.form['starting date']
+		edate = request.form['end date']
+		cursor3 = conn.cursor()
+		query3 = 'SELECT SUM(commission) tcom, AVG(commission) acom, COUNT(purchases.order_ID) ttickets FROM booking_agent, purchases, order_info WHERE booking_agent.booking_agent_ID = purchases.booking_agent_ID AND purchases.order_ID = order_info.order_ID AND booking_agent.booking_agent_ID = %s AND order_info.purchase_date_time >= %s AND order_info.purchase_date_time <= %s'
+		cursor3.execute(query3, (ID, sdate, edate))
+		# update the commssion results
+		data3 = cursor3.fetchall()
+		print((ID, sdate, edate))
+		print(data3)
+		return render_template('home_booking_agent.html', username=username, flight_info = data1, agent_info = data3)
+	else:
+		return render_template('home_booking_agent.html', username=username, flight_info = data1, agent_info = data2)
 
 # Handle purchasing in /home, record flight_num information for further activities
 @app.route('/purchase', methods = ['POST','GET'])
@@ -294,6 +313,7 @@ def purchaseComplete():
 	card_num = request.form['card_num']
 	card_type = request.form['card_type']
 	email = request.form['customer_email']
+	commission = request.form['commission']
 
 	cursor = conn.cursor()
 	query = 'SELECT airline_name FROM flight WHERE flight_num = %s'
@@ -307,7 +327,7 @@ def purchaseComplete():
 
 	query = 'SELECT base_price FROM flight WHERE flight_num = %s'
 	cursor.execute(query, (FLIGHT_NUM))
-	sold_price = str(cursor.fetchone()['base_price'])
+	sold_price =  int(cursor.fetchone()['base_price']) + int(commission)
 
 	purchase_time = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
@@ -326,7 +346,6 @@ def purchaseComplete():
 	cursor.execute(query, (FLIGHT_NUM + "%"))
 	all_tickets = cursor.fetchall()
 	
-	print(all_tickets)
 
 	if(all_tickets != ()):
 		final_ticket = all_tickets[0]['ticket_ID']
@@ -341,15 +360,15 @@ def purchaseComplete():
 		ins = 'INSERT INTO ticket VALUES(%s)'
 		cursor.execute(ins, (new_ticket))
  
-	ins = 'INSERT INTO purchases VALUES (%s,%s,%s,%s)'
+	ins = 'INSERT INTO purchases VALUES (%s,%s,%s,%s,%s)'
 
 	# For Customer 
 	if session['id'] is None:
-		cursor.execute(ins, (session['username'], "", new_order_no, new_ticket))
+		cursor.execute(ins, (session['username'], "", new_order_no, new_ticket, ""))
 		redirect = 'home_Customer'
 	# For Booking Agent
 	else:
-		cursor.execute(ins, (email, session['id'], new_order_no, new_ticket))
+		cursor.execute(ins, (email, session['id'], new_order_no, new_ticket, commission))
 		redirect = 'home_agent'
 
 	conn.commit()
