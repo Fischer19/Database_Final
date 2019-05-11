@@ -1,0 +1,32 @@
+<html>
+<head>
+</head>
+<body>
+
+<style type="text/css">
+	table, th, td{
+		border: 1px solid black;
+	}
+</style>
+
+Airplanes of {{posts[0]['airline_name']}}
+<br>
+
+<table>
+	<th>Airplane ID</th>
+	<th>No. of seats</th>
+
+{% for line in posts %}
+	<tr>
+		<td>{{line['ID']}}</td>
+		<td>{{line['seats']}}</td>
+	</tr>
+{% endfor %}
+</table>
+
+<a href="/home_staff">Back</a>
+
+</body>
+
+
+</html>

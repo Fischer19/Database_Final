@@ -474,22 +474,27 @@ def flight():
 def create_flight():
 	cursor = conn.cursor()
 
+	airline_name = request.form['airline_name']
+	flight_num = request.form['flight_num']
+	bprice = request.form['bprice']
+	airplane_id = request.form['airplane_id']
+	status = request.form['status']
+	dairport = request.form['dairport']
+	aairport = request.form['aairport']
+	dtime = request.form['ddate'] + request.form['dtime']
+	atime = request.form['adate'] + request.form['atime']
+
 	username = session['username']
-	auth = "SELECT username FROM airline_staff WHERE username = %s"
+	auth = "SELECT airline_name, username FROM employment WHERE username = %s"
 	cursor.execute(auth, (username))
-	auth_list = cursor.fetchall()
+	auth_list = cursor.fetchone()
 
-	if(auth_list):
-		airline_name = request.form['airline_name']
-		flight_num = request.form['flight_num']
-		bprice = request.form['bprice']
-		airplane_id = request.form['airplane_id']
-		status = request.form['status']
-		dairport = request.form['dairport']
-		aairport = request.form['aairport']
-		dtime = request.form['ddate'] + request.form['dtime']
-		atime = request.form['adate'] + request.form['atime']
+	if(auth_list == None):
+		conn.commit()
+		cursor.close()
+		return render_template('unauthorized_warning.html')
 
+	if(auth_list['airline_name'] == airline_name):
 		ins = 'INSERT INTO flight VALUES(%s,%s,%s,%s,%s)'
 		cursor.execute(ins, (airline_name, flight_num, bprice, airplane_id, status))
 
@@ -498,8 +503,6 @@ def create_flight():
 
 		ins = 'INSERT INTO arrival VALUES(%s,%s,%s,%s)'
 		cursor.execute(ins, (airline_name, flight_num, aairport, atime))
-
-		print('insert success')
 
 		conn.commit()
 		cursor.close()
@@ -510,6 +513,56 @@ def create_flight():
 		cursor.close()
 		return render_template('unauthorized_warning.html')
 		# maybe show a warning webpage here
+
+@app.route('/change_status', methods=['GET', 'POST'])
+def change_status():
+	cursor = conn.cursor()
+
+	flight_num = request.form['flight_num']
+	status = request.form['status']
+
+	upd = 'UPDATE flight SET status = %s WHERE flight_num = %s'
+	cursor.execute(upd, (status, flight_num))
+
+	conn.commit()
+	cursor.close()
+	return redirect(url_for('home_staff'))
+
+
+@app.route('/create_airplane', methods=['GET', 'POST'])
+def create_airplane():
+	cursor = conn.cursor()
+
+	airline_name = request.form['airline_name']
+	id = request.form['id']
+	seats = request.form['seats']
+
+	username = session['username']
+	auth = "SELECT username, airline_name FROM employment WHERE username = %s"
+	cursor.execute(auth, (username))
+	auth_list = cursor.fetchone()
+
+	if(auth_list == None):
+		conn.commit()
+		cursor.close()
+		return render_template('unauthorized_warning.html')
+
+	if(auth_list['airline_name'] == airline_name):
+		ins = 'INSERT INTO airplane values(%s, %s, %s)'
+		cursor.execute(ins, (airline_name, id, seats))
+
+		query = 'SELECT airline_name, ID, seats FROM airplane where airline_name = %s'
+		cursor.execute(query, (auth_list['airline_name']))
+		data = cursor.fetchall()
+
+		conn.commit()
+		cursor.close()
+		return render_template('airplane_list.html', posts = data)
+	
+	else:
+		conn.commit()
+		cursor.close()
+		return render_template('unauthorized_warning.html')
 		
 app.secret_key = 'some key that you will never guess'
 #Run the app on localhost port 5000

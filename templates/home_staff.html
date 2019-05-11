@@ -81,6 +81,31 @@
 		{% endif %}
 	</form>
 
+<!--Use case 6. Change Status of Flights-->
+<br><h>
+		Change Flight Status</h>
+	<form action="/change_status" method="POST">
+		<input type="text" name = "flight_num" placeholder="flight No." required/> </br>
+		<input type="text" name = "status" placeholder="new status" required/> </br>
+		<input type="submit" value = Submit />
+		{% if error %}
+			<p class="error"><strong>Error:</strong> {{error}}</p>
+		{% endif %}
+	</form>
+
+<!--Use case 7. Add Airplane-->
+<br><h>
+		Create New Airplane</h>
+	<form action="/create_airplane" method="POST">
+		<input type="text" name = "airline_name" placeholder="airline name" required/> </br>
+		<input type="text" name = "id" placeholder="airplane ID" required/> </br>
+		<input type="text" name = "seats" placeholder="No. of seats" required/> </br>
+		<input type="submit" value = Create />
+		{% if error %}
+			<p class="error"><strong>Error:</strong> {{error}}</p>
+		{% endif %}
+	</form>
+
 <a href="/logout">Logout</a>
 
 </body>
