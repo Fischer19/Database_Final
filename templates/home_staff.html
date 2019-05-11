@@ -160,6 +160,30 @@
 			{% endfor %}
 			</table>
 
+<!--Use case 10. View all the booking agents-->
+<br><h>
+		View frequent customers</h> <br>
+		<table>
+				<th>Customer</th>
+				<th>Flights Taken</th>
+			
+			{% for line in posts[4] %}
+				<tr>
+					<td>{{line['customer']}}</td>
+					<td>{{line['trips']}}</td>
+				</tr>
+			{% endfor %}
+			</table>
+		<br>
+		View customer trip history
+		<form action="/customer_flight" method="POST">
+			<input type="text" name = "email" placeholder="customer email" required/> </br>
+			<input type="submit" value = "View History" />
+			{% if error %}
+				<p class="error"><strong>Error:</strong> {{error}}</p>
+			{% endif %}
+		</form>
+
 <a href="/logout">Logout</a>
 
 </body>

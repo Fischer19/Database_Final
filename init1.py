@@ -454,6 +454,14 @@ def home_staff():
 	query = 'DROP VIEW top_comm_y'
 	cursor.execute(query)
 
+	query = 'CREATE VIEW top_customer (customer, trips) AS SELECT buyer_email, COUNT(purchases.order_ID) FROM order_info, purchases WHERE purchases.order_ID = order_info.order_ID AND booking_agent_ID != "" AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) GROUP BY buyer_email'
+	cursor.execute(query)
+	query = 'SELECT * FROM top_customer ORDER BY trips DESC LIMIT 5'
+	cursor.execute(query)
+	data.append(cursor.fetchall())
+	query = 'DROP VIEW top_customer'
+	cursor.execute(query)
+
 	cursor.close()
 	return render_template('home_staff.html', username=username, posts = data)
 
@@ -613,6 +621,27 @@ def create_airport():
 		conn.commit()
 		cursor.close()
 		return redirect(url_for('home_staff'))
+
+@app.route('/customer_flight', methods=['GET', 'POST'])
+def customer_flight():
+	cursor = conn.cursor()
+
+	username = session['username']
+	auth = "SELECT airline_name FROM employment WHERE username = %s"
+	cursor.execute(auth, (username))
+	airline = cursor.fetchone()['airline_name']
+
+	email = request.form['email']
+
+	print("test customer", airline, email)
+
+	query = 'SELECT DISTINCT buyer_email, flight_num FROM order_info, purchases WHERE purchases.order_ID = order_info.order_ID AND airline_name = %s and buyer_email = %s'
+	cursor.execute(query, (airline, email))
+	data = cursor.fetchall()
+
+	conn.commit()
+	cursor.close()
+	return render_template('customer_flight_list.html', posts = data)
 		
 app.secret_key = 'some key that you will never guess'
 #Run the app on localhost port 5000

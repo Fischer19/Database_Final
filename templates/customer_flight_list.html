@@ -1,0 +1,30 @@
+<html>
+<head>
+</head>
+<body>
+
+<style type="text/css">
+	table, th, td{
+		border: 1px solid black;
+	}
+</style>
+
+Flights of {{posts[0]['buyer_email']}}
+<br>
+
+<table>
+	<th>Flight No.</th>
+
+{% for line in posts %}
+	<tr>
+		<td>{{line['flight_num']}}</td>
+	</tr>
+{% endfor %}
+</table>
+
+<a href="/home_staff">Back</a>
+
+</body>
+
+
+</html>
