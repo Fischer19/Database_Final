@@ -192,7 +192,7 @@ def login_Staff():
 		#creates a session for the the user
 		#session is a built in
 		session['username'] = username
-		return redirect(url_for('home'))
+		return redirect(url_for('home_staff'))
 	else:
 		#returns an error message to the html page
 		error = 'Invalid login or username'
@@ -453,10 +453,90 @@ def logout():
 	session.pop('username')
 	return redirect('/')
 
+@app.route('/home_staff')
+def home_staff():
+	username = session['username']
+	cursor = conn.cursor()
+
+	query = 'SELECT departure.flight_num flight_num, flight.airline_name airline_name, departure.time dtime FROM employment, flight NATURAL JOIN departure, arrival WHERE employment.username = %s AND departure.flight_num = flight.flight_num AND arrival.flight_num = flight.flight_num AND departure.time > CURRENT_TIMESTAMP AND departure.time < date_add(date(now()), INTERVAL 30 day) AND flight.airline_name = employment.airline_name'
+	cursor.execute(query, (username))
+	data = cursor.fetchall()
+	print(data)
+	cursor.close()
+	return render_template('home_staff.html', username=username, posts = data)
+
+@app.route('/search_staff', methods=['GET', 'POST'])
+def search_staff():
+	#grabs information from the forms
+	username = session['username']
+	sourcec = request.form['sourcec']
+	destinationc = request.form['destinationc']
+	sourcea = request.form['sourcea']
+	destinationa = request.form['destinationa']
+	dtime = request.form['departure date']
+	atime = request.form['arrival date']
+	#cursor used to send queries
+	cursor = conn.cursor()
+	#executes query
+	query = 'SELECT departure.flight_num flight_num, departure.time dtime, departure.airport_name dairport, arrival.time atime, arrival.airport_name aairport FROM employment, flight NATURAL JOIN departure, arrival WHERE employment.username = %s AND departure.flight_num = flight.flight_num AND arrival.flight_num = flight.flight_num AND flight.airline_name = employment.airline_name'
+	cursor.execute(query, (username))
+	data = cursor.fetchall()
+	"""
+	if atime == '':
+		query = 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime FROM departure, arrival WHERE departure.flight_num = arrival.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
+		cursor.execute(query, (source, destination, dtime + '%'))
+	else:
+		query = 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime FROM departure, arrival WHERE departure.flight_num = arrival.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
+		query += 'UNION '
+		query += 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime FROM departure, arrival WHERE departure.flight_num = arrival.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
+		cursor.execute(query, (source, destination, dtime + '%',destination, source, atime + '%'))
+		
+	#stores the results in a variable
+	data = cursor.fetchall()
+	"""
+	#use fetchall() if you are expecting more than 1 data row
+	cursor.close()
+	return render_template('flight.html', posts=data)
+
 @app.route('/flight')
 def flight():
 
 	return render_template('index.html', username=username, posts=data1)
+
+@app.route('/create_flight')
+def create_flight():
+	cursor = conn.cursor()
+
+	username = session['username']
+	auth = "SELECT username FROM airline_staff WHERE username = %s"
+	cursor.execute(auth, (username))
+	auth_list = cursor.fetchall()
+
+	if auth_list:
+		airline_name = request.form['airline_name']
+		flight_num = request.form['flight_num']
+		bprice = request.form['bprice']
+		airplane_id = request.form['airplane_id']
+		status = request.form['status']
+		dairport = request.form['dairport']
+		aairport = request.form['aairport']
+		dtime = request.form['ddate'] + request.form['dtime']
+		atime = request.form['adate'] + request.form['atime']
+
+		ins = 'INSERT INTO flight VALUES(%s,%s,%s,%s,%s)'
+		cursor.execute(ins, (airline_name, flight_num, bprice, airplane_id, status))
+
+		ins = 'INSERT INTO departure VALUES(%s,%s,%s,%s)'
+		cursor.execute(ins, (airline_name, flight_num, bprice, dairport, dtime))
+
+		ins = 'INSERT INTO arrival VALUES(%s,%s,%s,%s)'
+		cursor.execute(ins, (airline_name, flight_num, bprice, aairport, atime))
+
+		return	
+	
+	else:
+		return
+		# maybe show a warning webpage here
 		
 app.secret_key = 'some key that you will never guess'
 #Run the app on localhost port 5000

@@ -1,0 +1,89 @@
+<html>
+<head>
+</head>
+<body>
+{% if error %}
+<p class="error"><strong>Error:</strong> {{error}}</p>
+{% endif %}
+<form action="/post" method="POST">
+	<h1>Welcome {{username}}</h1>
+</form>
+
+<style type="text/css">
+	table, th, td{
+		border: 1px solid black;
+	}
+</style>
+
+<!--Use case 4. View my flights-->
+<br><h>
+	My Future Flights</h>
+
+<table>
+	<th>Flight Number</th>
+	<th>Airline</th>
+	<th>Departure Time</th>
+
+{% for line in posts %}
+	<tr>
+		<td>{{line['flight_num']}}</td>
+		<td>{{line['airline_name']}}</td>
+		<td>{{line['dtime']}}</td>
+	</tr>
+{% endfor %}
+</table>
+
+<style type="text/css">
+	table, th, td{
+		border: 1px solid black;
+	}
+</style>
+
+<br><h>
+	Searching for Flights</h>
+
+<form action="/search_staff" method="POST">
+	<input type="text" name = "sourcea" placeholder="source airport"/> </br>
+	<input type="text" name = "destinationa" placeholder="destination airport"/></br>
+	<input type="text" name = "sourcec" placeholder="source city"/> </br>
+	<input type="text" name = "destinationc" placeholder="destination city"/></br>
+	From: <br>
+	<input type="date" name = "departure date" placeholder="departure date"/> </br>
+	To: <br>
+	<input type="date" name = "arrival date" placeholder="arrival date"/></br>
+	<input type="submit" value = Search />
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+</form>
+
+<!--Use case 5. Create New Flights-->
+<br><h>
+		Create New Flights</h>
+	
+	<form action="/create_flight" method="POST">
+		<input type="text" name = "airline_name" placeholder="airline name" required/> </br>
+		<input type="text" name = "flight_num" placeholder="flight No." required/> </br>
+		<input type="int" name = "bprice" placeholder="base price" required/> </br>
+		<input type="text" name = "airplane_id" placeholder="airplane ID" required/> </br>
+		<input type="text" name = "status" placeholder="status" required/> </br>
+		<input type="text" name = "dairport" placeholder="departure airport" required/> </br>
+		<input type="text" name = "aairport" placeholder="arrival airport" required/> </br>
+		Departure time: <br>
+		<input type="date" name = "ddate" required/> </br>
+		<input type="time" name = "dtime" required/> </br>
+		Arrival time: <br>
+		<input type="date" name = "adate" required/> </br>
+		<input type="time" name = "atime" required/> </br>
+		<input type="submit" value = Create />
+		{% if error %}
+			<p class="error"><strong>Error:</strong> {{error}}</p>
+		{% endif %}
+	</form>
+
+<a href="/logout">Logout</a>
+
+</body>
+
+
+</html>
