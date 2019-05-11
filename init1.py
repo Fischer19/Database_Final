@@ -246,10 +246,15 @@ def home_agent():
 
 	# query for top customers
 	cursor4 = conn.cursor()
-	query4 = 'SELECT customer.email email, COUNT(order_ID) tickets_purchased FROM customer, purchases, booking_agent WHERE customer.email = purchases.buyer_email AND purchases.booking_agent_ID = booking_agent.booking_agent_ID AND purchases.booking_agent_ID = %s GROUP BY purchases.buyer_email ORDER BY COUNT(order_ID) DESC LIMIT 5'
+	query4 = 'SELECT customer.email email, SUM(commission) total_commission_received, COUNT(order_info.order_ID) total_tickets FROM customer, purchases, booking_agent, order_info WHERE customer.email = purchases.buyer_email AND purchases.booking_agent_ID = booking_agent.booking_agent_ID AND order_info.order_id = purchases.order_id AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -6 MONTH) AND purchases.booking_agent_ID = %s GROUP BY purchases.buyer_email ORDER BY COUNT(order_info.order_ID) DESC LIMIT 5'
 	cursor4.execute(query4, (ID))
-	top_cus = cursor4.fetchall()
-	print(top_cus)
+	top_cus_6months = cursor4.fetchall()
+
+	cursor5 = conn.cursor()
+	query5 = 'SELECT customer.email email, SUM(commission) total_commission_received, COUNT(order_info.order_ID) total_tickets FROM customer, purchases, booking_agent, order_info WHERE customer.email = purchases.buyer_email AND purchases.booking_agent_ID = booking_agent.booking_agent_ID AND order_info.order_id = purchases.order_id AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH) AND purchases.booking_agent_ID = %s GROUP BY purchases.buyer_email ORDER BY COUNT(order_info.order_ID) DESC LIMIT 5'
+	cursor5.execute(query5, (ID))
+	top_cus_12months = cursor5.fetchall()
+
 
 	if request.method == "POST":
 		sdate = request.form['starting date']
@@ -261,9 +266,9 @@ def home_agent():
 		data3 = cursor3.fetchall()
 		print((ID, sdate, edate))
 		print(data3)
-		return render_template('home_booking_agent.html', username=username, flight_info = data1, agent_info = data3, top_cus=top_cus)
+		return render_template('home_booking_agent.html', username=username, flight_info = data1, agent_info = data3, top_cus_6months=top_cus_6months, top_cus_12months=top_cus_12months)
 	else:
-		return render_template('home_booking_agent.html', username=username, flight_info = data1, agent_info = data2, top_cus=top_cus)
+		return render_template('home_booking_agent.html', username=username, flight_info = data1, agent_info = data2, top_cus_6months=top_cus_6months, top_cus_12months=top_cus_12months)
 
 # Handle purchasing in /home, record flight_num information for further activities
 @app.route('/purchase', methods = ['POST','GET'])
