@@ -24,7 +24,7 @@
 	<th>Airline</th>
 	<th>Departure Time</th>
 
-{% for line in posts %}
+{% for line in posts[0] %}
 	<tr>
 		<td>{{line['flight_num']}}</td>
 		<td>{{line['airline_name']}}</td>
@@ -105,6 +105,60 @@
 			<p class="error"><strong>Error:</strong> {{error}}</p>
 		{% endif %}
 	</form>
+
+<!--Use case 8. Add Airport-->
+<br><h>
+		Create New Airport</h>
+	<form action="/create_airport" method="POST">
+		<input type="text" name = "name" placeholder="airport code" required/> </br>
+		<input type="text" name = "city" placeholder="airport city" required/> </br>
+		<input type="submit" value = Create />
+		{% if error %}
+			<p class="error"><strong>Error:</strong> {{error}}</p>
+		{% endif %}
+	</form>
+
+<!--Use case 9. View all the booking agents-->
+<br><h>
+		Top Booking Agents</h> <br> <br>
+		Monthly sum of tickets: 
+		<table>
+				<th>Agent</th>
+				<th>Total tickets</th>
+			
+			{% for line in posts[1] %}
+				<tr>
+					<td>{{line['agent']}}</td>
+					<td>{{line['orders']}}</td>
+				</tr>
+			{% endfor %}
+			</table>
+		<br>
+		Yearly sum of tickets: 
+		<table>
+				<th>Agent</th>
+				<th>Total tickets</th>
+			
+			{% for line in posts[2] %}
+				<tr>
+					<td>{{line['agent']}}</td>
+					<td>{{line['orders']}}</td>
+				</tr>
+			{% endfor %}
+			</table>
+		<br>
+		Yearly sum of commission: 
+		<table>
+				<th>Agent</th>
+				<th>Total commission</th>
+			
+			{% for line in posts[3] %}
+				<tr>
+					<td>{{line['agent']}}</td>
+					<td>{{line['comm']}}</td>
+				</tr>
+			{% endfor %}
+			</table>
 
 <a href="/logout">Logout</a>
 

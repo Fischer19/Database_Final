@@ -424,11 +424,36 @@ def logout():
 def home_staff():
 	username = session['username']
 	cursor = conn.cursor()
+	data = []
 
 	query = 'SELECT departure.flight_num flight_num, flight.airline_name airline_name, departure.time dtime FROM employment, flight NATURAL JOIN departure, arrival WHERE employment.username = %s AND departure.flight_num = flight.flight_num AND arrival.flight_num = flight.flight_num AND departure.time > CURRENT_TIMESTAMP AND departure.time < date_add(date(now()), INTERVAL 30 day) AND flight.airline_name = employment.airline_name'
 	cursor.execute(query, (username))
-	data = cursor.fetchall()
-	print(data)
+	data.append(cursor.fetchall())
+
+	query = 'CREATE VIEW top_ticket_m (agent, orders) AS SELECT booking_agent_ID, COUNT(purchases.order_ID) FROM order_info, purchases WHERE purchases.order_ID = order_info.order_ID AND booking_agent_ID != "" AND purchase_date_time > date_add(date(now()), INTERVAL -1 month) GROUP BY booking_agent_ID'
+	cursor.execute(query)
+	query = 'SELECT * FROM top_ticket_m ORDER BY orders DESC LIMIT 5'
+	cursor.execute(query)
+	data.append(cursor.fetchall())
+	query = 'DROP VIEW top_ticket_m'
+	cursor.execute(query)
+
+	query = 'CREATE VIEW top_ticket_y (agent, orders) AS SELECT booking_agent_ID, COUNT(purchases.order_ID) FROM order_info, purchases WHERE purchases.order_ID = order_info.order_ID AND booking_agent_ID != "" AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) GROUP BY booking_agent_ID'
+	cursor.execute(query)
+	query = 'SELECT * FROM top_ticket_y ORDER BY orders DESC LIMIT 5'
+	cursor.execute(query)
+	data.append(cursor.fetchall())
+	query = 'DROP VIEW top_ticket_y'
+	cursor.execute(query)
+
+	query = 'CREATE VIEW top_comm_y (agent, comm) AS SELECT booking_agent_ID, SUM(sold_price)*0.1 FROM order_info, purchases WHERE purchases.order_ID = order_info.order_ID AND booking_agent_ID != "" AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) GROUP BY booking_agent_ID'
+	cursor.execute(query)
+	query = 'SELECT * FROM top_comm_y ORDER BY comm DESC LIMIT 5'
+	cursor.execute(query)
+	data.append(cursor.fetchall())
+	query = 'DROP VIEW top_comm_y'
+	cursor.execute(query)
+
 	cursor.close()
 	return render_template('home_staff.html', username=username, posts = data)
 
@@ -563,6 +588,31 @@ def create_airplane():
 		conn.commit()
 		cursor.close()
 		return render_template('unauthorized_warning.html')
+
+@app.route('/create_airport', methods=['GET', 'POST'])
+def create_airport():
+	cursor = conn.cursor()
+
+	name = request.form['name']
+	city = request.form['city']
+
+	username = session['username']
+	auth = "SELECT username, airline_name FROM employment WHERE username = %s"
+	cursor.execute(auth, (username))
+	auth_list = cursor.fetchone()
+
+	if(auth_list == None):
+		conn.commit()
+		cursor.close()
+		return render_template('unauthorized_warning.html')
+
+	else:
+		ins = 'INSERT INTO airport values(%s, %s)'
+		cursor.execute(ins, (name, city))
+
+		conn.commit()
+		cursor.close()
+		return redirect(url_for('home_staff'))
 		
 app.secret_key = 'some key that you will never guess'
 #Run the app on localhost port 5000
