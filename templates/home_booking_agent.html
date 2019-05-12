@@ -16,7 +16,7 @@
 	<th>Airline</th>
 	<th>Ticket ID</th>
 
-{% for line in posts %}
+{% for line in flight_info %}
 	<tr>
 		<td>{{line['flight_num']}}</td>
 		<td>{{line['airline_name']}}</td>
@@ -37,6 +37,139 @@
 		<p class="error"><strong>Error:</strong> {{error}}</p>
 	{% endif %}
 </form>
+
+<br>
+<h2>View My Commission</h2>
+	<h3>Please specify a range</h3>
+	<form action="/home_agent" method="POST">
+	<input type="date" name = "starting date" placeholder="starting date" required/> </br>
+	<input type="date" name = "end date" placeholder="end date"/></br>
+	<input type="submit" value = Search />
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+	</form>
+	
+	<table>
+	<th>Total Commission</th>
+	<th>Average Commission</th>
+	<th>Total Tickets Sold</th>
+
+	{% for line in agent_info %}
+		<tr>
+			<td>{{line['tcom']}}</td>
+			<td>{{line['acom']}}</td>
+			<td>{{line['ttickets']}}</td>
+		</tr>
+	{% endfor %}
+	</table>
+
+<h2>View My Top Customers in Last 6 Months</h2>
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+	</form>
+	
+	<table id = "table_6month">
+	<th>Customer email</th>
+	<th>Total commission received</th>
+
+	{% for line in top_cus_6months %}
+		<tr>
+			<td>{{line['email']}}</td>
+			<td>{{line['total_commission_received']}}</td>
+		</tr>
+	{% endfor %}
+	</table>
+
+	<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+	<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+	<script type="text/javascript">
+
+		var top_cus_6months = document.getElementById('table_6month')
+		var data = new Array(top_cus_6months.rows.length-1);
+		for (var i = 0; i <= top_cus_6months.rows.length - 2; i++) {
+			data[i] = {y: parseInt(top_cus_6months.rows[i+1].cells[1].innerText), label: top_cus_6months.rows[i+1].cells[0].innerText}
+		}
+		console.log(data)
+		var chart = new CanvasJS.Chart("chartContainer", {
+			animationEnabled: true,
+			
+			title:{
+				text:"Top 5 Customers in the Past 6 Months"
+			},
+			axisX:{
+				interval: 1
+			},
+			axisY2:{
+				interlacedColor: "rgba(1,77,101,.2)",
+				gridColor: "rgba(1,77,101,.1)",
+				title: "Number of Tickets Purchased"
+			},
+			data: [{
+				type: "bar",
+				name: "companies",
+				axisYType: "secondary",
+				color: "#014D65",
+				dataPoints: data
+			}]
+		});
+		chart.render();
+	</script>
+
+
+<h2>View My Top Customers in Last 12 Months</h2>
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+	</form>
+	
+	<table>
+	<th>Customer email</th>
+	<th>Total commission received</th>
+
+	{% for line in top_cus_12months %}
+		<tr>
+			<td>{{line['email']}}</td>
+			<td>{{line['total_commission_received']}}</td>
+		</tr>
+	{% endfor %}
+	</table>
+
+	<div id="chartContainer1" style="height: 300px; width: 100%;"></div>
+	<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+	<script type="text/javascript">
+
+		var top_cus_12months = document.getElementById('table_6month')
+		var data = new Array(top_cus_12months.rows.length-1);
+		for (var i = 0; i <= top_cus_12months.rows.length - 2; i++) {
+			data[i] = {y: parseInt(top_cus_12months.rows[i+1].cells[1].innerText), label: top_cus_6months.rows[i+1].cells[0].innerText}
+		}
+		console.log(data)
+		var chart = new CanvasJS.Chart("chartContainer1", {
+			animationEnabled: true,
+			
+			title:{
+				text:"Top 5 Customers in the Past 12 Months"
+			},
+			axisX:{
+				interval: 1
+			},
+			axisY2:{
+				interlacedColor: "rgba(1,77,101,.2)",
+				gridColor: "rgba(1,77,101,.1)",
+				title: "Number of Tickets Purchased"
+			},
+			data: [{
+				type: "bar",
+				name: "companies",
+				axisYType: "secondary",
+				color: "#014D65",
+				dataPoints: data
+			}]
+		});
+		chart.render();
+	</script>
 
 <style type="text/css">
 	table, th, td{
