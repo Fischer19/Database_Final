@@ -472,41 +472,108 @@ def home_staff():
 	cursor = conn.cursor()
 	data = []
 
+	auth = "SELECT airline_name FROM employment WHERE username = %s"
+	cursor.execute(auth, (username))
+	airline_name = cursor.fetchone()['airline_name']
+
+	#--Use case 4. View my flights--
 	query = 'SELECT departure.flight_num flight_num, flight.airline_name airline_name, departure.time dtime FROM employment, flight NATURAL JOIN departure, arrival WHERE employment.username = %s AND departure.flight_num = flight.flight_num AND arrival.flight_num = flight.flight_num AND departure.time > CURRENT_TIMESTAMP AND departure.time < date_add(date(now()), INTERVAL 30 day) AND flight.airline_name = employment.airline_name'
 	cursor.execute(query, (username))
 	data.append(cursor.fetchall())
 
-	query = 'CREATE VIEW top_ticket_m (agent, orders) AS SELECT booking_agent_ID, COUNT(purchases.order_ID) FROM order_info, purchases WHERE purchases.order_ID = order_info.order_ID AND booking_agent_ID != "" AND purchase_date_time > date_add(date(now()), INTERVAL -1 month) GROUP BY booking_agent_ID'
-	cursor.execute(query)
+	#--Use case 9. View all the booking agents--
+	query = 'CREATE VIEW top_ticket_m (agent, orders) AS SELECT booking_agent_ID, COUNT(purchases.order_ID) FROM order_info, purchases WHERE purchases.order_ID = order_info.order_ID AND booking_agent_ID != "" AND purchase_date_time > date_add(date(now()), INTERVAL -1 month) AND order_info.airline_name = %s GROUP BY booking_agent_ID'
+	cursor.execute(query, (airline_name))
 	query = 'SELECT * FROM top_ticket_m ORDER BY orders DESC LIMIT 5'
 	cursor.execute(query)
 	data.append(cursor.fetchall())
 	query = 'DROP VIEW top_ticket_m'
 	cursor.execute(query)
 
-	query = 'CREATE VIEW top_ticket_y (agent, orders) AS SELECT booking_agent_ID, COUNT(purchases.order_ID) FROM order_info, purchases WHERE purchases.order_ID = order_info.order_ID AND booking_agent_ID != "" AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) GROUP BY booking_agent_ID'
-	cursor.execute(query)
+	query = 'CREATE VIEW top_ticket_y (agent, orders) AS SELECT booking_agent_ID, COUNT(purchases.order_ID) FROM order_info, purchases WHERE purchases.order_ID = order_info.order_ID AND booking_agent_ID != "" AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) AND order_info.airline_name = %s GROUP BY booking_agent_ID'
+	cursor.execute(query, (airline_name))
 	query = 'SELECT * FROM top_ticket_y ORDER BY orders DESC LIMIT 5'
 	cursor.execute(query)
 	data.append(cursor.fetchall())
 	query = 'DROP VIEW top_ticket_y'
 	cursor.execute(query)
 
-	query = 'CREATE VIEW top_comm_y (agent, comm) AS SELECT booking_agent_ID, SUM(sold_price)*0.1 FROM order_info, purchases WHERE purchases.order_ID = order_info.order_ID AND booking_agent_ID != "" AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) GROUP BY booking_agent_ID'
-	cursor.execute(query)
+	query = 'CREATE VIEW top_comm_y (agent, comm) AS SELECT booking_agent_ID, SUM(sold_price)*0.1 FROM order_info, purchases WHERE purchases.order_ID = order_info.order_ID AND booking_agent_ID != "" AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) AND order_info.airline_name = %s GROUP BY booking_agent_ID'
+	cursor.execute(query, (airline_name))
 	query = 'SELECT * FROM top_comm_y ORDER BY comm DESC LIMIT 5'
 	cursor.execute(query)
 	data.append(cursor.fetchall())
 	query = 'DROP VIEW top_comm_y'
 	cursor.execute(query)
 
-	query = 'CREATE VIEW top_customer (customer, trips) AS SELECT buyer_email, COUNT(purchases.order_ID) FROM order_info, purchases WHERE purchases.order_ID = order_info.order_ID AND booking_agent_ID != "" AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) GROUP BY buyer_email'
-	cursor.execute(query)
+	#--Use case 10. View frequent customers--
+	query = 'CREATE VIEW top_customer (customer, trips) AS SELECT buyer_email, COUNT(purchases.order_ID) FROM order_info, purchases WHERE purchases.order_ID = order_info.order_ID AND booking_agent_ID != "" AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) AND order_info.airline_name = %s GROUP BY buyer_email'
+	cursor.execute(query, (airline_name))
 	query = 'SELECT * FROM top_customer ORDER BY trips DESC LIMIT 5'
 	cursor.execute(query)
 	data.append(cursor.fetchall())
 	query = 'DROP VIEW top_customer'
 	cursor.execute(query)
+
+	query = 'CREATE VIEW top_destination_3m (destination, trips) AS SELECT city, COUNT(order_info.flight_num) FROM order_info, arrival NATURAL JOIN airport WHERE order_info.flight_num = arrival.flight_num AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -3 month) GROUP BY city'
+	cursor.execute(query, (airline_name))
+	query = 'SELECT * FROM top_destination_3m ORDER BY trips DESC LIMIT 5'
+	cursor.execute(query)
+	data.append(cursor.fetchall())
+	query = 'DROP VIEW top_destination_3m'
+	cursor.execute(query)
+
+	#--Use case 13. View top destinations--
+	query = 'CREATE VIEW top_destination_y (destination, trips) AS SELECT city, COUNT(order_info.flight_num) FROM order_info, arrival NATURAL JOIN airport WHERE order_info.flight_num = arrival.flight_num AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) GROUP BY city'
+	cursor.execute(query, (airline_name))
+	query = 'SELECT * FROM top_destination_y ORDER BY trips DESC LIMIT 5'
+	cursor.execute(query)
+	data.append(cursor.fetchall())
+	query = 'DROP VIEW top_destination_y'
+	cursor.execute(query)
+
+	#--Use case 11. View reports--
+	#query = 'SELECT sum(sold_price) + sum(commission) yearly_spending FROM order_info, purchases WHERE order_info.order_id = purchases.order_id AND buyer_email = %s'
+	#cursor.execute(query, (username))
+	#spending = [cursor.fetchone()]
+
+	if request.method == "POST":
+		sdate = request.form['starting date']
+		edate = request.form['end date']
+		if  edate == '':
+			query = 'SELECT count(order_id) sum FROM order_info NATURAL JOIN purchases WHERE airline_name = %s AND purchase_date_time > %s'
+			cursor.execute(query, (airline_name, sdate))
+			spending = [cursor.fetchall()[0]]
+			query = 'SELECT count(order_id) sum, year(purchase_date_time) year, month(purchase_date_time) month FROM order_info NATURAL JOIN purchases WHERE airline_name = %s AND purchase_date_time > %s GROUP BY year(purchase_date_time), month(purchase_date_time)' 
+			cursor.execute(query, (airline_name, sdate))
+			y_m_spending = cursor.fetchall()
+		else:
+			query = 'SELECT count(order_id) sum FROM order_info NATURAL JOIN purchases WHERE airline_name = %s AND purchase_date_time > %s AND purchase_date_time < %s'
+			cursor.execute(query, (airline_name, sdate, edate))
+			spending = [cursor.fetchall()[0]]
+			query = 'SELECT count(order_id) sum, year(purchase_date_time) year, month(purchase_date_time) month FROM order_info NATURAL JOIN purchases WHERE airline_name = %s AND purchase_date_time > %s AND purchase_date_time < %s GROUP BY year(purchase_date_time), month(purchase_date_time)' 
+			cursor.execute(query, (airline_name, sdate, edate))
+			y_m_spending = cursor.fetchall()
+		# update the commssion results
+		for entry in y_m_spending:
+			entry['ym'] = str(entry['year']) + "-" + str(entry['month'])
+			del entry['year']
+			del entry['month']
+		spending.append(y_m_spending)
+		print(spending, "aaaaa")
+	else:
+		# query for monthwise spending
+		query = 'SELECT count(order_id) sum FROM order_info NATURAL JOIN purchases WHERE airline_name = %s AND purchase_date_time > DATE_ADD(NOW(), INTERVAL -6 MONTH)'
+		cursor.execute(query, (airline_name))
+		spending = [cursor.fetchall()[0]]
+		query = 'SELECT count(order_id) sum, year(purchase_date_time) year, month(purchase_date_time) month FROM order_info NATURAL JOIN purchases WHERE airline_name = %s AND purchase_date_time > DATE_ADD(NOW(), INTERVAL -6 MONTH) GROUP BY year(purchase_date_time), month(purchase_date_time)' 
+		cursor.execute(query, (airline_name))
+		y_m_spending = cursor.fetchall()
+		for entry in y_m_spending:
+			entry['ym'] = str(entry['year']) + "-" + str(entry['month'])
+			del entry['year']
+			del entry['month']
+		spending.append(y_m_spending)
 
 	sale_12months = []
 	query = 'SELECT SUM(flight.base_price) total_sale FROM purchases, order_info, flight, airline_staff, employment where purchases.order_ID = order_info.order_ID AND order_info.flight_num = flight.flight_num AND employment.username = airline_staff.username AND flight.airline_name = employment.airline_name AND airline_staff.username = %s AND purchases.commission is NOT NULL AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH)'
@@ -525,7 +592,7 @@ def home_staff():
 	sale_1months.append(cursor.fetchone())
 
 	cursor.close()
-	return render_template('home_staff.html', username=username, posts = data, sale_12months = sale_12months, sale_1months = sale_1months)
+	return render_template('home_staff.html', username=username, posts = data, sale_12months = sale_12months, sale_1months = sale_1months, tickets = spending)
 
 @app.route('/search_staff', methods=['GET', 'POST'])
 def search_staff():
