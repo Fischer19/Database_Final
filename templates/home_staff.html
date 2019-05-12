@@ -284,6 +284,82 @@
 			</table>
 		<br>
 
+<<<<<<< HEAD
+=======
+<h>View total revenue breakdown in last year </h>
+<table id = "sale">
+	<th>Direct Sale</th>
+	<th>Indirect Sale</th>
+
+	<tr>
+		<td>{{sale_12months[0]["total_sale"]}}</td>
+		<td>{{sale_12months[1]["total_sale"]}}</td>
+	</tr>
+</table>
+
+<div id="chartContainer1" style="height: 300px; width: 100%;"></div>
+
+
+<h>View total revenue breakdown in last month </h>
+<table id = "sale1">
+	<th>Direct Sale</th>
+	<th>Indirect Sale</th>
+
+	<tr>
+		<td>{{sale_1months[0]["total_sale"]}}</td>
+		<td>{{sale_1months[1]["total_sale"]}}</td>
+	</tr>
+</table>
+
+
+<script>
+window.onload = function() {
+
+var data = document.getElementById('sale')
+console.log(data.rows[1].cells[0].innerText)
+var chart = new CanvasJS.Chart("chartContainer1", {
+	animationEnabled: true,
+	title: {
+		text: "Total revenue earned in last year"
+	},
+	data: [{
+		type: "pie",
+		startAngle: 240,
+		yValueFormatString: "##0.00",
+		indexLabel: "{label} {y}",
+		dataPoints: [
+			{y: parseInt(data.rows[1].cells[0].innerText), label: "Indirect Sale"},
+			{y: parseInt(data.rows[1].cells[1].innerText), label: "Direct Sale"},
+		]
+	}]
+});
+chart.render();
+
+var data1 = document.getElementById('sale1')
+var chart = new CanvasJS.Chart("chartContainer2", {
+	animationEnabled: true,
+	title: {
+		text: "Total revenue earned in last year"
+	},
+	data: [{
+		type: "pie",
+		startAngle: 240,
+		yValueFormatString: "##0.00",
+		indexLabel: "{label} {y}",
+		dataPoints: [
+			{y: parseInt(data1.rows[1].cells[0].innerText), label: "Indirect Sale"},
+			{y: parseInt(data1.rows[1].cells[1].innerText), label: "Direct Sale"},
+		]
+	}]
+});
+chart.render();
+
+}
+</script>
+<div id="chartContainer2" style="height: 300px; width: 100%;"></div>
+<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+
+>>>>>>> 8a49d2039b2c39185b23657f7a99ef5363f1ee90
 
 <a href="/logout">Logout</a>
 

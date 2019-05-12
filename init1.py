@@ -232,7 +232,7 @@ def home_agent():
 	username = session['username']
 	ID = session['id']
 	print(username)
-	cursor1 = conn.cursor()
+	cursor1 = conn.cursor();
 	query1 = 'SELECT order_info.flight_num flight_num, departure.airline_name airline_name, ticket_ID, time FROM booking_agent, purchases, order_info, departure WHERE booking_agent.booking_agent_ID = purchases.booking_agent_ID and purchases.order_ID = order_info.order_ID and order_info.flight_num = departure.flight_num and booking_agent.email = %s and departure.time >= NOW()'
 	cursor1.execute(query1, (username))
 	data1 = cursor1.fetchall()
@@ -389,16 +389,6 @@ def purchaseComplete():
 	return render_template('success_purchase.html', redirect = redirect)
 
 
-"""
-@app.route('/home')
-def home():
-    
-    username = session['username']
-    cursor = conn.cursor()
-
-    return render_template('home.html', username=username)
-"""
-
 @app.route('/home_Customer', methods=['POST', 'GET'])
 def home_Customer():
 	username = session['username']
@@ -463,7 +453,7 @@ def myFutureFlights():
 @app.route('/myFlights', methods=['GET', 'POST'])
 def myFlights():
 	#grabs information from the forms
-	source = request.form['source']
+	source = request.form['source'];
 	destination = request.form['destination']
 	dtime = request.form['departure date']
 	atime = request.form['arrival date']
@@ -611,8 +601,24 @@ def home_staff():
 			del entry['month']
 		spending.append(y_m_spending)
 
+	sale_12months = []
+	query = 'SELECT SUM(flight.base_price) total_sale FROM purchases, order_info, flight, airline_staff, employment where purchases.order_ID = order_info.order_ID AND order_info.flight_num = flight.flight_num AND employment.username = airline_staff.username AND flight.airline_name = employment.airline_name AND airline_staff.username = %s AND purchases.commission is NOT NULL AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH)'
+	cursor.execute(query, (username))
+	sale_12months.append(cursor.fetchone())
+	query = 'SELECT SUM(flight.base_price) total_sale FROM purchases, order_info, flight, airline_staff, employment where purchases.order_ID = order_info.order_ID AND order_info.flight_num = flight.flight_num AND employment.username = airline_staff.username AND flight.airline_name = employment.airline_name AND airline_staff.username = %s AND purchases.commission is NULL AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH)'
+	cursor.execute(query, (username))
+	sale_12months.append(cursor.fetchone())
+
+	sale_1months = []
+	query = 'SELECT SUM(flight.base_price) total_sale FROM purchases, order_info, flight, airline_staff, employment where purchases.order_ID = order_info.order_ID AND order_info.flight_num = flight.flight_num AND employment.username = airline_staff.username AND flight.airline_name = employment.airline_name AND airline_staff.username = %s AND purchases.commission is NOT NULL AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH)'
+	cursor.execute(query, (username))
+	sale_1months.append(cursor.fetchone())
+	query = 'SELECT SUM(flight.base_price) total_sale FROM purchases, order_info, flight, airline_staff, employment where purchases.order_ID = order_info.order_ID AND order_info.flight_num = flight.flight_num AND employment.username = airline_staff.username AND flight.airline_name = employment.airline_name AND airline_staff.username = %s AND purchases.commission is NULL AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH)'
+	cursor.execute(query, (username))
+	sale_1months.append(cursor.fetchone())
+
 	cursor.close()
-	return render_template('home_staff.html', username=username, posts = data, tickets = spending)
+	return render_template('home_staff.html', username=username, posts = data, sale_12months = sale_12months, sale_1months = sale_1months, tickets = spending)
 
 @app.route('/search_staff', methods=['GET', 'POST'])
 def search_staff():
