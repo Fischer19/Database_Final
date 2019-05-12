@@ -184,6 +184,37 @@
 			{% endif %}
 		</form>
 
+<!--Use case 13. View top destinations-->
+<br><h2>
+		View Top Destinations</h2>
+		3-Month popular: <br>
+		<table>
+				<th>Destination</th>
+				<th>Trips Taken</th>
+			
+			{% for line in posts[5] %}
+				<tr>
+					<td>{{line['destination']}}</td>
+					<td>{{line['trips']}}</td>
+				</tr>
+			{% endfor %}
+			</table>
+		<br>
+		1-Year popular: <br>
+		<table>
+				<th>Destination</th>
+				<th>Trips Taken</th>
+			
+			{% for line in posts[6] %}
+				<tr>
+					<td>{{line['destination']}}</td>
+					<td>{{line['trips']}}</td>
+				</tr>
+			{% endfor %}
+			</table>
+		<br>
+
+
 <a href="/logout">Logout</a>
 
 </body>

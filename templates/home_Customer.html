@@ -16,8 +16,8 @@
 </style>
 
 <!--Use case 4. View my flights-->
-<br><h>
-	My Future Flights</h>
+<br><h2>
+	My Future Flights</h2>
 
 <table>
 	<th>Flight Number</th>
@@ -41,8 +41,8 @@
 
 
 <!--Use case 5. Search for flights-->
-<br><h>
-	Looking for a new trip?</h>
+<br><h2>
+	Looking for a new trip?</h2>
 
 <form action="/purchase" method="POST">
 	<input type="text" name = "source" placeholder="source city" required/> </br>
@@ -56,17 +56,80 @@
 </form>
 
 <!--Use case 7. Track my spending-->
-<br><h>
-		Track My Spending</h>
-	
-	<form action="/mySpending" method="POST">
-		<input type="date" name = "stime" placeholder="start time" required/> </br>
-		<input type="date" name = "etime" placeholder="end time"/></br>
-		<input type="submit" value = Search />
-		{% if error %}
-			<p class="error"><strong>Error:</strong> {{error}}</p>
-		{% endif %}
+<br><h2>
+		Track My Spending</h2>
+
+	<h3>Please specify a range</h3>
+	<form action="/home_Customer" method="POST">
+	<input type="date" name = "starting date" placeholder="starting date" required/> </br>
+	<input type="date" name = "end date" placeholder="end date"/></br>
+	<input type="submit" value = Search />
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
 	</form>
+	
+	<table>
+	<th>Total Spending in the Past Year</th>
+		<tr>
+			<td>{{spending[0]['yearly_spending']}}</td>
+		</tr>
+	</table>
+
+<h2>View Monthly Spending</h2>
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+	</form>
+	
+	<table id = "spending_m">
+	<th>Month</th>
+	<th>Total Spending</th>
+
+	{% for line in spending[1] %}
+		<tr>
+			<td>{{line['ym']}}</td>
+			<td>{{line['total']}}</td>
+		</tr>
+	{% endfor %}
+	</table>
+
+	<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+	<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+	<script type="text/javascript">
+
+		var spending_m = document.getElementById('spending_m')
+		var data = new Array(spending_m.rows.length-1);
+		for (var i = 0; i <= spending_m.rows.length - 2; i++) {
+			data[i] = {y: parseInt(spending_m.rows[i+1].cells[1].innerText), label: spending_m.rows[i+1].cells[0].innerText}
+		}
+		console.log(data)
+		var chart = new CanvasJS.Chart("chartContainer", {
+			animationEnabled: true,
+			
+			title:{
+				text:"Monthly Spending"
+			},
+			axisX:{
+				interval: 1
+			},
+			axisY2:{
+				interlacedColor: "rgba(1,77,101,.2)",
+				gridColor: "rgba(1,77,101,.1)",
+				//title: "Number of Tickets Purchased"
+			},
+			data: [{
+				type: "bar",
+				name: "companies",
+				axisYType: "secondary",
+				color: "#014D65",
+				dataPoints: data
+			}]
+		});
+		chart.render();
+	</script>
+
+
 
 <a href="/logout">Logout</a>
 
