@@ -160,7 +160,7 @@
 			{% endfor %}
 			</table>
 
-<!--Use case 10. View all the booking agents-->
+<!--Use case 10. View frequent customers-->
 <br><h>
 		View frequent customers</h> <br>
 		<table>
@@ -184,6 +184,76 @@
 			{% endif %}
 		</form>
 
+<!--Use case 11. View Reports-->
+<br><h2>
+		View reports</h2>
+
+	<h3>Please specify a range</h3>
+	<form action="/home_staff" method="POST">
+	<input type="date" name = "starting date" placeholder="starting date" required/> </br>
+	<input type="date" name = "end date" placeholder="end date"/></br>
+	<input type="submit" value = Search />
+	{% if error %}
+		<p class="error"><strong>Error:</strong> {{error}}</p>
+	{% endif %}
+	</form>
+	
+	<table>
+	<th>Total Amount of Ticket Sold</th>
+		<tr>
+			<td>{{tickets[0]['sum']}}</td>
+		</tr>
+	</table>
+
+	</form>
+	
+	<table id = "tickets">
+	<th>Month</th>
+	<th>Amount</th>
+
+	{% for line in tickets[1] %}
+		<tr>
+			<td>{{line['ym']}}</td>
+			<td>{{line['sum']}}</td>
+		</tr>
+	{% endfor %}
+	</table>
+<div id="chartContainer" style="height: 300px; width: 100%;"></div>
+<script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+<script type="text/javascript">
+
+	var tickets = document.getElementById('tickets')
+	var data = new Array(tickets.rows.length-1);
+	for (var i = 0; i <= tickets.rows.length - 2; i++) {
+		data[i] = {y: parseInt(tickets.rows[i+1].cells[1].innerText), label: tickets.rows[i+1].cells[0].innerText}
+	}
+	console.log(data)
+	var chart = new CanvasJS.Chart("chartContainer", {
+		animationEnabled: true,
+		
+		title:{
+			text:"Tickets Sold by Month"
+		},
+		axisX:{
+			interval: 1
+		},
+		axisY2:{
+			interlacedColor: "rgba(1,77,101,.2)",
+			gridColor: "rgba(1,77,101,.1)",
+			//title: "Number of Tickets Purchased"
+		},
+		data: [{
+			type: "bar",
+			name: "companies",
+			axisYType: "secondary",
+			color: "#014D65",
+			dataPoints: data
+		}]
+	});
+	chart.render();
+</script>
+
+		
 <!--Use case 13. View top destinations-->
 <br><h2>
 		View Top Destinations</h2>
