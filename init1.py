@@ -674,7 +674,8 @@ def search_staff():
 	#executes query
 	query = 'SELECT departure.flight_num flight_num, departure.time dtime, departure.airport_name dairport, arrival.time atime, arrival.airport_name aairport FROM employment, flight NATURAL JOIN departure, arrival WHERE employment.username = %s AND departure.flight_num = flight.flight_num AND arrival.flight_num = flight.flight_num AND flight.airline_name = employment.airline_name'
 	query += " AND departure.time >= %s AND departure.time <= %s"
-	cursor.execute(query, (username, dtime, atime))
+	query += " AND departure.airport_name like %s AND arrival.airport_name like %s"
+	cursor.execute(query, (username, dtime, atime, sourcea + "%", destinationa + "%"))
 	data = cursor.fetchall()
 	#print("data", data)
 	customer_info = []
