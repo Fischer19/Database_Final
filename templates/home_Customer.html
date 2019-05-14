@@ -59,6 +59,13 @@
 <br><h2>
 		Track My Spending</h2>
 
+		<table>
+	<th>Total Spending in the Past Year</th>
+		<tr>
+			<td>{{spending[0]['yearly_spending']}}</td>
+		</tr>
+	</table>
+
 	<h3>Please specify a range</h3>
 	<form action="/home_Customer" method="POST">
 	<input type="date" name = "starting date" placeholder="starting date" required/> </br>
@@ -69,12 +76,6 @@
 	{% endif %}
 	</form>
 	
-	<table>
-	<th>Total Spending in the Past Year</th>
-		<tr>
-			<td>{{spending[0]['yearly_spending']}}</td>
-		</tr>
-	</table>
 
 <h2>View Monthly Spending</h2>
 	{% if error %}

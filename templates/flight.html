@@ -21,8 +21,32 @@
 		<td>{{line['atime']}}</td>
 	</tr>
 {% endfor %}
-</table>
 
+<table><th>Name</th><th>Passport Number</th><th>Email</th><th>Flight Number</th>
+
+{% for line in staff[1] %}
+	{% for item in line %}
+	<tr>
+		<td>{{item['name']}}</td>
+		<td>{{item['passport']}}</td>
+		<td>{{item['email']}}</td>
+		<td>{{item['flight_num']}}</td>
+	</tr>
+	{% endfor %}
+{% endfor %}
+
+{% if staff[0] %}
+	<input type="submit" value = "View Customer" onclick="myFunction()" />
+{% endif%}
+</table>
+<p id = "cust_info"></p>
+<script>
+function myFunction() {
+		document.getElementById("cust_info").innerHTML = '<table><th>Name</th><th>Passport Number</th><th>Email</th>';
+}
+</script>
+
+<a href="/{{redirect}}">Back</a>
 
 </body>
 
