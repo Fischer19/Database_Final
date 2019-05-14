@@ -570,7 +570,7 @@ def home_staff():
 	cursor.execute(query)
 
 	#--Use case 13. View top destinations--
-	query = 'CREATE VIEW top_destination_3m (destination, trips) AS SELECT city, COUNT(order_info.flight_num) FROM order_info, arrival, airport WHERE order_info.flight_num = arrival.flight_num AND arrival.airport_name = airport.name AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -3 month) GROUP BY city'
+	query = 'CREATE VIEW top_destination_3m (destination, trips) AS SELECT airport.city, COUNT(order_info.flight_num) FROM order_info, arrival, airport WHERE order_info.flight_num = arrival.flight_num AND arrival.airport_name = airport.name AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -3 month) GROUP BY city'
 	cursor.execute(query, (airline_name))
 	query = 'SELECT * FROM top_destination_3m ORDER BY trips DESC LIMIT 5'
 	cursor.execute(query)
@@ -578,7 +578,7 @@ def home_staff():
 	query = 'DROP VIEW top_destination_3m'
 	cursor.execute(query)
 
-	query = 'CREATE VIEW top_destination_y (destination, trips) AS SELECT city, COUNT(order_info.flight_num) FROM order_info, arrival, airport WHERE order_info.flight_num = arrival.flight_num AND arrival.airport_name = airport.name AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) GROUP BY city'
+	query = 'CREATE VIEW top_destination_y (destination, trips) AS SELECT airport.city, COUNT(order_info.flight_num) FROM order_info, arrival, airport WHERE order_info.flight_num = arrival.flight_num AND arrival.airport_name = airport.name AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) GROUP BY city'
 	cursor.execute(query, (airline_name))
 	query = 'SELECT * FROM top_destination_y ORDER BY trips DESC LIMIT 5'
 	cursor.execute(query)
@@ -727,10 +727,10 @@ def create_flight():
 		ins = 'INSERT INTO flight VALUES(%s,%s,%s,%s,%s)'
 		cursor.execute(ins, (airline_name, flight_num, bprice, airplane_id, status))
 
-		ins = 'INSERT INTO departure VALUES(%s,%s,%s,%s)'
+		ins = 'INSERT INTO departure VALUES(%s,%s,%s,%s,%s)'
 		cursor.execute(ins, (airline_name, flight_num, dairport, dtime, dcity))
 
-		ins = 'INSERT INTO arrival VALUES(%s,%s,%s,%s)'
+		ins = 'INSERT INTO arrival VALUES(%s,%s,%s,%s,%s)'
 		cursor.execute(ins, (airline_name, flight_num, aairport, atime, acity))
 
 		conn.commit()
