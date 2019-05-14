@@ -512,7 +512,7 @@ def post():
 @app.route('/logout')
 def logout():
 	session.pop('username')
-	return redirect('/')
+	return render_template('goodbye.html')
 
 @app.route('/home_staff', methods=['GET', 'POST'])
 def home_staff():
