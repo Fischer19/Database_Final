@@ -236,6 +236,16 @@ def home_agent():
 	username = session['username']
 	ID = session['id']
 	print(username)
+
+	cursor = conn.cursor()
+	auth = "SELECT * FROM booking_agent WHERE email = %s"
+	cursor.execute(auth, (username))
+	auth_result = cursor.fetchone()
+	if auth_result == None:
+		conn.commit()
+		cursor.close()
+		return render_template('unauthorized_warning.html')
+
 	cursor1 = conn.cursor()
 	query1 = 'SELECT order_info.flight_num flight_num, departure.airline_name airline_name, ticket_ID, time FROM booking_agent, purchases, order_info, departure WHERE booking_agent.booking_agent_ID = purchases.booking_agent_ID and purchases.order_ID = order_info.order_ID and order_info.flight_num = departure.flight_num and booking_agent.email = %s and departure.time >= NOW()'
 	cursor1.execute(query1, (username))
