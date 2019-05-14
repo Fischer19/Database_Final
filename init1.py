@@ -247,7 +247,7 @@ def home_agent():
 		return render_template('unauthorized_warning.html')
 
 	cursor1 = conn.cursor()
-	query1 = 'SELECT order_info.flight_num flight_num, departure.airline_name airline_name, ticket_ID, time FROM booking_agent, purchases, order_info, departure WHERE booking_agent.booking_agent_ID = purchases.booking_agent_ID and purchases.order_ID = order_info.order_ID and order_info.flight_num = departure.flight_num and booking_agent.email = %s and departure.time >= NOW()'
+	query1 = 'SELECT buyer_email, order_info.flight_num flight_num, departure.airline_name airline_name, ticket_ID, purchase_date_time FROM booking_agent, purchases, order_info, departure WHERE booking_agent.booking_agent_ID = purchases.booking_agent_ID and purchases.order_ID = order_info.order_ID and order_info.flight_num = departure.flight_num and booking_agent.email = %s and departure.time >= NOW()'
 	cursor1.execute(query1, (username))
 	data1 = cursor1.fetchall()
 	cursor1.close()
@@ -569,7 +569,8 @@ def home_staff():
 	query = 'DROP VIEW top_customer'
 	cursor.execute(query)
 
-	query = 'CREATE VIEW top_destination_3m (destination, trips) AS SELECT city, COUNT(order_info.flight_num) FROM order_info, arrival NATURAL JOIN airport WHERE order_info.flight_num = arrival.flight_num AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -3 month) GROUP BY city'
+	#--Use case 13. View top destinations--
+	query = 'CREATE VIEW top_destination_3m (destination, trips) AS SELECT city, COUNT(order_info.flight_num) FROM order_info, arrival, airport WHERE order_info.flight_num = arrival.flight_num AND arrival.airport_name = airport.name AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -3 month) GROUP BY city'
 	cursor.execute(query, (airline_name))
 	query = 'SELECT * FROM top_destination_3m ORDER BY trips DESC LIMIT 5'
 	cursor.execute(query)
@@ -577,8 +578,7 @@ def home_staff():
 	query = 'DROP VIEW top_destination_3m'
 	cursor.execute(query)
 
-	#--Use case 13. View top destinations--
-	query = 'CREATE VIEW top_destination_y (destination, trips) AS SELECT city, COUNT(order_info.flight_num) FROM order_info, arrival NATURAL JOIN airport WHERE order_info.flight_num = arrival.flight_num AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) GROUP BY city'
+	query = 'CREATE VIEW top_destination_y (destination, trips) AS SELECT city, COUNT(order_info.flight_num) FROM order_info, arrival, airport WHERE order_info.flight_num = arrival.flight_num AND arrival.airport_name = airport.name AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) GROUP BY city'
 	cursor.execute(query, (airline_name))
 	query = 'SELECT * FROM top_destination_y ORDER BY trips DESC LIMIT 5'
 	cursor.execute(query)
