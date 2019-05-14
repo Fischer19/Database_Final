@@ -675,7 +675,8 @@ def search_staff():
 	query = 'SELECT departure.flight_num flight_num, departure.time dtime, departure.airport_name dairport, arrival.time atime, arrival.airport_name aairport FROM employment, flight NATURAL JOIN departure, arrival WHERE employment.username = %s AND departure.flight_num = flight.flight_num AND arrival.flight_num = flight.flight_num AND flight.airline_name = employment.airline_name'
 	query += " AND departure.time >= %s AND departure.time <= %s"
 	query += " AND departure.airport_name like %s AND arrival.airport_name like %s"
-	cursor.execute(query, (username, dtime, atime, sourcea + "%", destinationa + "%"))
+	query += " AND departure.city like %s AND arrival.city like %s"
+	cursor.execute(query, (username, dtime, atime, sourcea + "%", destinationa + "%", sourcec + "%", destinationc + "%"))
 	data = cursor.fetchall()
 	#print("data", data)
 	customer_info = []
@@ -705,6 +706,8 @@ def create_flight():
 	status = request.form['status']
 	dairport = request.form['dairport']
 	aairport = request.form['aairport']
+	dcity = request.form['dcity']
+	acity = request.form['acity']
 	dtime = request.form['ddate'] + " " + request.form['dtime']
 	atime = request.form['adate'] + " " + request.form['atime']
 	print("Dtime", dtime)
@@ -725,10 +728,10 @@ def create_flight():
 		cursor.execute(ins, (airline_name, flight_num, bprice, airplane_id, status))
 
 		ins = 'INSERT INTO departure VALUES(%s,%s,%s,%s)'
-		cursor.execute(ins, (airline_name, flight_num, dairport, dtime))
+		cursor.execute(ins, (airline_name, flight_num, dairport, dtime, dcity))
 
 		ins = 'INSERT INTO arrival VALUES(%s,%s,%s,%s)'
-		cursor.execute(ins, (airline_name, flight_num, aairport, atime))
+		cursor.execute(ins, (airline_name, flight_num, aairport, atime, acity))
 
 		conn.commit()
 		cursor.close()
