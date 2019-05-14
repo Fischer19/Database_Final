@@ -705,8 +705,10 @@ def create_flight():
 	status = request.form['status']
 	dairport = request.form['dairport']
 	aairport = request.form['aairport']
-	dtime = request.form['ddate'] + request.form['dtime']
-	atime = request.form['adate'] + request.form['atime']
+	dtime = request.form['ddate'] + " " + request.form['dtime']
+	atime = request.form['adate'] + " " + request.form['atime']
+	print("Dtime", dtime)
+	print("atime", atime)
 
 	username = session['username']
 	auth = "SELECT airline_name, username FROM employment WHERE username = %s"
