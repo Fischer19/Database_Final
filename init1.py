@@ -50,7 +50,7 @@ def searchAuth():
 	#use fetchall() if you are expecting more than 1 data row
 	cursor.close()
 	redirect = ""
-	return render_template('flight.html', posts=data, redirect = redirect)
+	return render_template('flight.html', posts=data, redirect = redirect, staff = [False, []])
 
 @app.route('/flight_status', methods=['GET', 'POST'])
 def searchStatus():
@@ -450,7 +450,7 @@ def myFutureFlights():
 	#use fetchall() if you are expecting more than 1 data row
 	cursor.close()
 	redirect = ""
-	return render_template('flight.html', posts=data, redirect = redirect)
+	return render_template('flight.html', posts=data, redirect = redirect, staff = [False, []])
 
 @app.route('/myFlights', methods=['GET', 'POST'])
 def myFlights():
@@ -477,7 +477,7 @@ def myFlights():
 	#use fetchall() if you are expecting more than 1 data row
 	cursor.close()
 	redirect = ""
-	return render_template('flight.html', posts=data, redirect = redirect)
+	return render_template('flight.html', posts=data, redirect = redirect, staff = [False, []])
 		
 @app.route('/post', methods=['GET', 'POST'])
 def post():
@@ -652,7 +652,6 @@ def search_staff():
 	cursor.close()
 	redirect = "home_staff"
 	staff = (True, customer_info)
-	print(customer_info)
 	return render_template('flight.html', posts=data, redirect = redirect, staff = staff)
 
 @app.route('/flight')
