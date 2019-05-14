@@ -290,27 +290,31 @@ def home_agent():
 # Handle purchasing in /home, record flight_num information for further activities
 @app.route('/purchase', methods = ['POST','GET'])
 def purchase():
-	source = request.form['source']
-	destination = request.form['destination']
+	#grabs information from the forms
+	sourcec = request.form['sourcec']
+	destinationc = request.form['destinationc']
+	sourcea = request.form['sourcea']
+	destinationa = request.form['destinationa']
 	dtime = request.form['departure date']
 	atime = request.form['arrival date']
+	if atime == "":
+		atime = "3000-1-1"
 	#cursor used to send queries
 	cursor = conn.cursor()
 	#executes query
-	if atime == '':
-		query = 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime, flight.base_price bprice FROM departure, arrival, flight WHERE departure.flight_num = arrival.flight_num AND departure.flight_num = flight.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
-		print(source, destination, dtime + '%')
-		cursor.execute(query, (source, destination, dtime + '%'))
-	else:
-		query = 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime, flight.base_price bprice FROM departure, arrival, flight WHERE departure.flight_num = arrival.flight_num AND departure.flight_num = flight.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
-		query += 'UNION '
-		query += 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime, flight.base_price bprice FROM departure, arrival, flight WHERE departure.flight_num = arrival.flight_num AND arrival.flight_num = flight.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
-		cursor.execute(query, (source, destination, dtime + '%',destination, source, atime + '%'))
-	#stores the results in a variable
+	query = 'SELECT departure.flight_num flight_num, departure.time dtime, departure.airport_name dairport, arrival.time atime, arrival.airport_name aairport, base_price bprice FROM flight NATURAL JOIN departure, arrival WHERE departure.flight_num = flight.flight_num AND arrival.flight_num = flight.flight_num'
+	query += " AND departure.time >= %s AND departure.time <= %s"
+	query += " AND departure.airport_name like %s AND arrival.airport_name like %s"
+	query += " AND departure.city like %s AND arrival.city like %s"
+	cursor.execute(query, (dtime, atime, sourcea + "%", destinationa + "%", sourcec + "%", destinationc + "%"))
 	data = cursor.fetchall()
-	#use fetchall() if you are expecting more than 1 data row
+	#print("data", data)
+	customer_info = []
 	cursor.close()
-	return render_template('purchase.html', posts=data)
+	redirect = "home_agent"
+	staff = (False, customer_info)
+	return render_template('purchase.html', posts=data, redirect = redirect, staff = staff)
+
 
 # Handle purchase information 
 @app.route("/purchaseAuth", methods = ['POST', 'GET'])
@@ -688,6 +692,33 @@ def search_staff():
 	cursor.close()
 	redirect = "home_staff"
 	staff = (True, customer_info)
+	return render_template('flight.html', posts=data, redirect = redirect, staff = staff)
+
+@app.route('/search_customer', methods=['GET', 'POST'])
+def search_customer():
+	#grabs information from the forms
+	sourcec = request.form['sourcec']
+	destinationc = request.form['destinationc']
+	sourcea = request.form['sourcea']
+	destinationa = request.form['destinationa']
+	dtime = request.form['departure date']
+	atime = request.form['arrival date']
+	if atime == "":
+		atime = "3000-1-1"
+	#cursor used to send queries
+	cursor = conn.cursor()
+	#executes query
+	query = 'SELECT departure.flight_num flight_num, departure.time dtime, departure.airport_name dairport, arrival.time atime, arrival.airport_name aairport FROM flight NATURAL JOIN departure, arrival WHERE departure.flight_num = flight.flight_num AND arrival.flight_num = flight.flight_num'
+	query += " AND departure.time >= %s AND departure.time <= %s"
+	query += " AND departure.airport_name like %s AND arrival.airport_name like %s"
+	query += " AND departure.city like %s AND arrival.city like %s"
+	cursor.execute(query, (dtime, atime, sourcea + "%", destinationa + "%", sourcec + "%", destinationc + "%"))
+	data = cursor.fetchall()
+	#print("data", data)
+	customer_info = []
+	cursor.close()
+	redirect = "home_agent"
+	staff = (False, customer_info)
 	return render_template('flight.html', posts=data, redirect = redirect, staff = staff)
 
 @app.route('/flight')
