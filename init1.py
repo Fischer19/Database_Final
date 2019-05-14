@@ -109,6 +109,7 @@ def register_Staff():
 	first_name = request.form['first_name']
 	last_name = request.form['last_name']
 	date_of_birth = request.form['date_of_birth']
+	phone_num = request.form['phone_num']
 	airline_name = request.form['airline_name']
 	cursor = conn.cursor()
 	query = 'SELECT * FROM airline_staff WHERE username = %s'
@@ -118,8 +119,10 @@ def register_Staff():
 		error = "You have an account, please login directly"
 		return render_template('register.html', error = error)
 	else:
-		ins = 'INSERT INTO airline_staff VALUES(%s,%s,%s,%s,%s,%s,)'
-		cursor.execute(ins,(username,password,first_name,last_name,date_of_birth,airline_name))
+		ins = 'INSERT INTO airline_staff VALUES(%s,%s,%s,%s,%s,%s)'
+		cursor.execute(ins,(username,password,first_name,last_name,date_of_birth,phone_num))
+		ins = 'INSERT INTO employment VALUES(%s,%s)'
+		cursor.execute(ins,(airline_name,username))
 		conn.commit()
 		cursor.close()
 		return render_template('index.html')
@@ -232,7 +235,7 @@ def home_agent():
 	username = session['username']
 	ID = session['id']
 	print(username)
-	cursor1 = conn.cursor();
+	cursor1 = conn.cursor()
 	query1 = 'SELECT order_info.flight_num flight_num, departure.airline_name airline_name, ticket_ID, time FROM booking_agent, purchases, order_info, departure WHERE booking_agent.booking_agent_ID = purchases.booking_agent_ID and purchases.order_ID = order_info.order_ID and order_info.flight_num = departure.flight_num and booking_agent.email = %s and departure.time >= NOW()'
 	cursor1.execute(query1, (username))
 	data1 = cursor1.fetchall()
@@ -259,6 +262,9 @@ def home_agent():
 	if request.method == "POST":
 		sdate = request.form['starting date']
 		edate = request.form['end date']
+		print("end date", edate)
+		if edate == "":
+			edate = datetime.now()
 		cursor3 = conn.cursor()
 		query3 = 'SELECT SUM(commission) tcom, AVG(commission) acom, COUNT(purchases.order_ID) ttickets FROM booking_agent, purchases, order_info WHERE booking_agent.booking_agent_ID = purchases.booking_agent_ID AND purchases.order_ID = order_info.order_ID AND booking_agent.booking_agent_ID = %s AND order_info.purchase_date_time >= %s AND order_info.purchase_date_time <= %s'
 		cursor3.execute(query3, (ID, sdate, edate))
@@ -319,6 +325,7 @@ def purchaseComplete():
 	"""
 	global FLIGHT_NUM
 
+	cursor = conn.cursor()
 	if str(request.form.get('flight_num')) != 'None':
 		FLIGHT_NUM = str(request.form.get('flight_num'))
 	card_exp_date = request.form['card_exp_date']
@@ -326,9 +333,11 @@ def purchaseComplete():
 	card_num = request.form['card_num']
 	card_type = request.form['card_type']
 	email = request.form['customer_email']
+	query = "SELECT base_price FROM flight WHERE flight_num = %s"
+	cursor.execute(query, FLIGHT_NUM)
 	commission = float(cursor.fetchone()['base_price']) * 0.1
 
-	cursor = conn.cursor()
+
 	query = 'SELECT airline_name FROM flight WHERE flight_num = %s'
 	cursor.execute(query, (FLIGHT_NUM))
 	airline_name = cursor.fetchone()['airline_name']
@@ -500,7 +509,13 @@ def home_staff():
 
 	auth = "SELECT airline_name FROM employment WHERE username = %s"
 	cursor.execute(auth, (username))
-	airline_name = cursor.fetchone()['airline_name']
+	airline_name = cursor.fetchone()
+	print("bug test", airline_name)
+	if airline_name == None:
+		conn.commit()
+		cursor.close()
+		return render_template('unauthorized_warning.html')
+	airline_name = airline_name['airline_name']
 
 	#--Use case 4. View my flights--
 	query = 'SELECT departure.flight_num flight_num, flight.airline_name airline_name, departure.time dtime FROM employment, flight NATURAL JOIN departure, arrival WHERE employment.username = %s AND departure.flight_num = flight.flight_num AND arrival.flight_num = flight.flight_num AND departure.time > CURRENT_TIMESTAMP AND departure.time < date_add(date(now()), INTERVAL 30 day) AND flight.airline_name = employment.airline_name'
@@ -601,21 +616,30 @@ def home_staff():
 			del entry['month']
 		spending.append(y_m_spending)
 
-	sale_12months = []
+	sale_12months = [{'total_sale':0},{'total_sale':0}]
 	query = 'SELECT SUM(flight.base_price) total_sale FROM purchases, order_info, flight, airline_staff, employment where purchases.order_ID = order_info.order_ID AND order_info.flight_num = flight.flight_num AND employment.username = airline_staff.username AND flight.airline_name = employment.airline_name AND airline_staff.username = %s AND purchases.commission is NOT NULL AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH)'
 	cursor.execute(query, (username))
-	sale_12months.append(cursor.fetchone())
+	ds = cursor.fetchone()
+	if ds['total_sale'] != None:
+		sale_12months[0]=ds
 	query = 'SELECT SUM(flight.base_price) total_sale FROM purchases, order_info, flight, airline_staff, employment where purchases.order_ID = order_info.order_ID AND order_info.flight_num = flight.flight_num AND employment.username = airline_staff.username AND flight.airline_name = employment.airline_name AND airline_staff.username = %s AND purchases.commission is NULL AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH)'
 	cursor.execute(query, (username))
-	sale_12months.append(cursor.fetchone())
+	ids = cursor.fetchone()
+	if ids['total_sale'] != None:
+		sale_12months[1]=ids
+	print("dsids", ds, ids)
 
-	sale_1months = []
+	sale_1months = [{'total_sale':0},{'total_sale':0}]
 	query = 'SELECT SUM(flight.base_price) total_sale FROM purchases, order_info, flight, airline_staff, employment where purchases.order_ID = order_info.order_ID AND order_info.flight_num = flight.flight_num AND employment.username = airline_staff.username AND flight.airline_name = employment.airline_name AND airline_staff.username = %s AND purchases.commission is NOT NULL AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH)'
 	cursor.execute(query, (username))
-	sale_1months.append(cursor.fetchone())
+	ds = cursor.fetchone()
+	if ds['total_sale'] != None:
+		sale_1months[0]=ds
 	query = 'SELECT SUM(flight.base_price) total_sale FROM purchases, order_info, flight, airline_staff, employment where purchases.order_ID = order_info.order_ID AND order_info.flight_num = flight.flight_num AND employment.username = airline_staff.username AND flight.airline_name = employment.airline_name AND airline_staff.username = %s AND purchases.commission is NULL AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH)'
 	cursor.execute(query, (username))
-	sale_1months.append(cursor.fetchone())
+	ids = cursor.fetchone()
+	if ids['total_sale'] != None:
+		sale_1months[1]=ids
 
 	cursor.close()
 	return render_template('home_staff.html', username=username, posts = data, sale_12months = sale_12months, sale_1months = sale_1months, tickets = spending)
