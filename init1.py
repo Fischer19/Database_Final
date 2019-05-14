@@ -49,7 +49,8 @@ def searchAuth():
 	data = cursor.fetchall()
 	#use fetchall() if you are expecting more than 1 data row
 	cursor.close()
-	return render_template('flight.html', posts=data)
+	redirect = ""
+	return render_template('flight.html', posts=data, redirect = redirect, staff = [False, []])
 
 @app.route('/flight_status', methods=['GET', 'POST'])
 def searchStatus():
@@ -457,7 +458,8 @@ def myFutureFlights():
 	data = cursor.fetchall()
 	#use fetchall() if you are expecting more than 1 data row
 	cursor.close()
-	return render_template('flight.html', posts=data)
+	redirect = ""
+	return render_template('flight.html', posts=data, redirect = redirect, staff = [False, []])
 
 @app.route('/myFlights', methods=['GET', 'POST'])
 def myFlights():
@@ -483,7 +485,8 @@ def myFlights():
 	data = cursor.fetchall()
 	#use fetchall() if you are expecting more than 1 data row
 	cursor.close()
-	return render_template('flight.html', posts=data)
+	redirect = ""
+	return render_template('flight.html', posts=data, redirect = redirect, staff = [False, []])
 		
 @app.route('/post', methods=['GET', 'POST'])
 def post():
@@ -654,28 +657,26 @@ def search_staff():
 	destinationa = request.form['destinationa']
 	dtime = request.form['departure date']
 	atime = request.form['arrival date']
+	if atime == "":
+		atime = "3000-1-1"
 	#cursor used to send queries
 	cursor = conn.cursor()
 	#executes query
 	query = 'SELECT departure.flight_num flight_num, departure.time dtime, departure.airport_name dairport, arrival.time atime, arrival.airport_name aairport FROM employment, flight NATURAL JOIN departure, arrival WHERE employment.username = %s AND departure.flight_num = flight.flight_num AND arrival.flight_num = flight.flight_num AND flight.airline_name = employment.airline_name'
-	cursor.execute(query, (username))
+	query += " AND departure.time >= %s AND departure.time <= %s"
+	cursor.execute(query, (username, dtime, atime))
 	data = cursor.fetchall()
-	"""
-	if atime == '':
-		query = 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime FROM departure, arrival WHERE departure.flight_num = arrival.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
-		cursor.execute(query, (source, destination, dtime + '%'))
-	else:
-		query = 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime FROM departure, arrival WHERE departure.flight_num = arrival.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
-		query += 'UNION '
-		query += 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime FROM departure, arrival WHERE departure.flight_num = arrival.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
-		cursor.execute(query, (source, destination, dtime + '%',destination, source, atime + '%'))
-		
-	#stores the results in a variable
-	data = cursor.fetchall()
-	"""
-	#use fetchall() if you are expecting more than 1 data row
+	#print("data", data)
+	customer_info = []
+	for item in data:
+		flight_num = item["flight_num"]
+		query = "SELECT customer.name name, customer.passport_num passport, customer.email email, flight.flight_num flight_num FROM flight, customer, order_info, purchases WHERE order_info.order_ID = purchases.order_ID AND purchases.buyer_email = customer.email AND order_info.flight_num = flight.flight_num AND flight.flight_num = %s"
+		cursor.execute(query, (flight_num))
+		customer_info.append(cursor.fetchall())
 	cursor.close()
-	return render_template('flight.html', posts=data)
+	redirect = "home_staff"
+	staff = (True, customer_info)
+	return render_template('flight.html', posts=data, redirect = redirect, staff = staff)
 
 @app.route('/flight')
 def flight():
