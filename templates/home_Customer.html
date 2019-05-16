@@ -45,9 +45,13 @@
 	Looking for a new trip?</h2>
 
 <form action="/purchase" method="POST">
-	<input type="text" name = "source" placeholder="source city" required/> </br>
-	<input type="text" name = "destination" placeholder="destination city" required/></br>
-	<input type="date" name = "departure date" placeholder="departure date" required/> </br>
+	<input type="text" name = "sourcea" placeholder="source airport"/> </br>
+	<input type="text" name = "destinationa" placeholder="destination airport"/></br>
+	<input type="text" name = "sourcec" placeholder="source city"/> </br>
+	<input type="text" name = "destinationc" placeholder="destination city"/></br>
+	From: <br>
+	<input type="date" name = "departure date" placeholder="departure date"/> </br>
+	To: <br>
 	<input type="date" name = "arrival date" placeholder="arrival date"/></br>
 	<input type="submit" value = Search />
 	{% if error %}

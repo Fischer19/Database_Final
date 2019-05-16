@@ -291,28 +291,36 @@ def home_agent():
 # Handle purchasing in /home, record flight_num information for further activities
 @app.route('/purchase', methods = ['POST','GET'])
 def purchase():
-	source = request.form['source']
-	destination = request.form['destination']
+	#grabs information from the forms
+	sourcec = request.form['sourcec']
+	destinationc = request.form['destinationc']
+	sourcea = request.form['sourcea']
+	destinationa = request.form['destinationa']
 	dtime = request.form['departure date']
 	atime = request.form['arrival date']
+	if atime == "":
+		atime = "3000-1-1"
 	#cursor used to send queries
 	cursor = conn.cursor()
 	#executes query
-	if atime == '':
-		query = 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime, flight.base_price bprice FROM departure, arrival, flight WHERE departure.flight_num = arrival.flight_num AND departure.flight_num = flight.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
-		print(source, destination, dtime + '%')
-		cursor.execute(query, (source, destination, dtime + '%'))
-	else:
-		query = 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime, flight.base_price bprice FROM departure, arrival, flight WHERE departure.flight_num = arrival.flight_num AND departure.flight_num = flight.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
-		query += 'UNION '
-		query += 'SELECT departure.flight_num flight_num, departure.time dtime, arrival.time atime, flight.base_price bprice FROM departure, arrival, flight WHERE departure.flight_num = arrival.flight_num AND arrival.flight_num = flight.flight_num AND departure.airport_name = %s AND arrival.airport_name = %s AND departure.time like %s'
-		cursor.execute(query, (source, destination, dtime + '%',destination, source, atime + '%'))
-	#stores the results in a variable
+	query = 'SELECT departure.flight_num flight_num, departure.time dtime, departure.airport_name dairport, arrival.time atime, arrival.airport_name aairport, base_price bprice FROM flight NATURAL JOIN departure, arrival WHERE departure.flight_num = flight.flight_num AND arrival.flight_num = flight.flight_num'
+	query += " AND departure.time >= %s AND departure.time <= %s"
+	query += " AND departure.airport_name like %s AND arrival.airport_name like %s"
+	query += " AND departure.city like %s AND arrival.city like %s"
+	cursor.execute(query, (dtime, atime, sourcea + "%", destinationa + "%", sourcec + "%", destinationc + "%"))
 	data = cursor.fetchall()
+#<<<<<<< HEAD
 	#use fetchall() if you are expecting more than 1 data row
 
+#=======
+	#print("data", data)
+	customer_info = []
+#>>>>>>> e98aeca96c9f70ad7cd63c1d563460afafda523e
 	cursor.close()
-	return render_template('purchase.html', posts=data)
+	redirect = "home_agent"
+	staff = (False, customer_info)
+	return render_template('purchase.html', posts=data, redirect = redirect, staff = staff)
+
 
 # Handle purchase information 
 @app.route("/purchaseAuth", methods = ['POST', 'GET'])
@@ -335,7 +343,11 @@ def purchaseAuth():
 	total_seats = int(cursor.fetchone()['seats'])
 	if tickets_sold > 0.7*total_seats:
 		data['bprice'] = str(int(data['bprice'] * 1.2))
-	return render_template("purchaseAuth.html", data=data)
+	error = None
+	if tickets_sold == total_seats:
+		error = "The tickets have been sold out"
+
+	return render_template("purchaseAuth.html", data=data, error = error)
 
 # After recording purchase information
 @app.route('/purchaseComplete', methods = ['POST'])
@@ -590,7 +602,11 @@ def home_staff():
 	cursor.execute(query)
 
 	#--Use case 13. View top destinations--
+#<<<<<<< HEAD
 	query = 'CREATE VIEW top_destination_3m (destination, trips) AS SELECT airport.city, COUNT(order_info.flight_num) FROM order_info, arrival, airport WHERE order_info.flight_num = arrival.flight_num AND arrival.airport_name = airport.name AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -3 month) GROUP BY city'
+#=======
+	#query = 'CREATE VIEW top_destination_3m (destination, trips) AS SELECT city, COUNT(order_info.flight_num) FROM order_info, arrival WHERE order_info.flight_num = arrival.flight_num AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -3 month) GROUP BY city'
+#>>>>>>> e98aeca96c9f70ad7cd63c1d563460afafda523e
 	cursor.execute(query, (airline_name))
 	query = 'SELECT * FROM top_destination_3m ORDER BY trips DESC LIMIT 5'
 	cursor.execute(query)
@@ -598,7 +614,11 @@ def home_staff():
 	query = 'DROP VIEW top_destination_3m'
 	cursor.execute(query)
 
+#<<<<<<< HEAD
 	query = 'CREATE VIEW top_destination_y (destination, trips) AS SELECT airport.city, COUNT(order_info.flight_num) FROM order_info, arrival, airport WHERE order_info.flight_num = arrival.flight_num AND arrival.airport_name = airport.name AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) GROUP BY city'
+#=======
+	#query = 'CREATE VIEW top_destination_y (destination, trips) AS SELECT city, COUNT(order_info.flight_num) FROM order_info, arrival WHERE order_info.flight_num = arrival.flight_num AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) GROUP BY city'
+#>>>>>>> e98aeca96c9f70ad7cd63c1d563460afafda523e
 	cursor.execute(query, (airline_name))
 	query = 'SELECT * FROM top_destination_y ORDER BY trips DESC LIMIT 5'
 	cursor.execute(query)
@@ -650,12 +670,12 @@ def home_staff():
 		spending.append(y_m_spending)
 
 	sale_12months = [{'total_sale':0},{'total_sale':0}]
-	query = 'SELECT SUM(flight.base_price) total_sale FROM purchases, order_info, flight, airline_staff, employment where purchases.order_ID = order_info.order_ID AND order_info.flight_num = flight.flight_num AND employment.username = airline_staff.username AND flight.airline_name = employment.airline_name AND airline_staff.username = %s AND purchases.commission is NOT NULL AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH)'
+	query = 'SELECT SUM(flight.base_price) total_sale FROM purchases, order_info, flight, airline_staff, employment where purchases.order_ID = order_info.order_ID AND order_info.flight_num = flight.flight_num AND employment.username = airline_staff.username AND flight.airline_name = employment.airline_name AND airline_staff.username = %s AND purchases.commission > 0 AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH)'
 	cursor.execute(query, (username))
 	ds = cursor.fetchone()
 	if ds['total_sale'] != None:
 		sale_12months[0]=ds
-	query = 'SELECT SUM(flight.base_price) total_sale FROM purchases, order_info, flight, airline_staff, employment where purchases.order_ID = order_info.order_ID AND order_info.flight_num = flight.flight_num AND employment.username = airline_staff.username AND flight.airline_name = employment.airline_name AND airline_staff.username = %s AND purchases.commission is NULL AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH)'
+	query = 'SELECT SUM(flight.base_price) total_sale FROM purchases, order_info, flight, airline_staff, employment where purchases.order_ID = order_info.order_ID AND order_info.flight_num = flight.flight_num AND employment.username = airline_staff.username AND flight.airline_name = employment.airline_name AND airline_staff.username = %s AND purchases.commission in (0, NULL) AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH)'
 	cursor.execute(query, (username))
 	ids = cursor.fetchone()
 	if ids['total_sale'] != None:
@@ -663,12 +683,12 @@ def home_staff():
 	print("dsids", ds, ids)
 
 	sale_1months = [{'total_sale':0},{'total_sale':0}]
-	query = 'SELECT SUM(flight.base_price) total_sale FROM purchases, order_info, flight, airline_staff, employment where purchases.order_ID = order_info.order_ID AND order_info.flight_num = flight.flight_num AND employment.username = airline_staff.username AND flight.airline_name = employment.airline_name AND airline_staff.username = %s AND purchases.commission is NOT NULL AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH)'
+	query = 'SELECT SUM(flight.base_price) total_sale FROM purchases, order_info, flight, airline_staff, employment where purchases.order_ID = order_info.order_ID AND order_info.flight_num = flight.flight_num AND employment.username = airline_staff.username AND flight.airline_name = employment.airline_name AND airline_staff.username = %s AND purchases.commission > 0 AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH)'
 	cursor.execute(query, (username))
 	ds = cursor.fetchone()
 	if ds['total_sale'] != None:
 		sale_1months[0]=ds
-	query = 'SELECT SUM(flight.base_price) total_sale FROM purchases, order_info, flight, airline_staff, employment where purchases.order_ID = order_info.order_ID AND order_info.flight_num = flight.flight_num AND employment.username = airline_staff.username AND flight.airline_name = employment.airline_name AND airline_staff.username = %s AND purchases.commission is NULL AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH)'
+	query = 'SELECT SUM(flight.base_price) total_sale FROM purchases, order_info, flight, airline_staff, employment where purchases.order_ID = order_info.order_ID AND order_info.flight_num = flight.flight_num AND employment.username = airline_staff.username AND flight.airline_name = employment.airline_name AND airline_staff.username = %s AND purchases.commission in (0, NULL) AND order_info.purchase_date_time >= DATE_ADD(NOW(), INTERVAL -12 MONTH)'
 	cursor.execute(query, (username))
 	ids = cursor.fetchone()
 	if ids['total_sale'] != None:
@@ -710,6 +730,33 @@ def search_staff():
 	staff = (True, customer_info)
 	return render_template('flight.html', posts=data, redirect = redirect, staff = staff)
 
+@app.route('/search_customer', methods=['GET', 'POST'])
+def search_customer():
+	#grabs information from the forms
+	sourcec = request.form['sourcec']
+	destinationc = request.form['destinationc']
+	sourcea = request.form['sourcea']
+	destinationa = request.form['destinationa']
+	dtime = request.form['departure date']
+	atime = request.form['arrival date']
+	if atime == "":
+		atime = "3000-1-1"
+	#cursor used to send queries
+	cursor = conn.cursor()
+	#executes query
+	query = 'SELECT departure.flight_num flight_num, departure.time dtime, departure.airport_name dairport, arrival.time atime, arrival.airport_name aairport FROM flight NATURAL JOIN departure, arrival WHERE departure.flight_num = flight.flight_num AND arrival.flight_num = flight.flight_num'
+	query += " AND departure.time >= %s AND departure.time <= %s"
+	query += " AND departure.airport_name like %s AND arrival.airport_name like %s"
+	query += " AND departure.city like %s AND arrival.city like %s"
+	cursor.execute(query, (dtime, atime, sourcea + "%", destinationa + "%", sourcec + "%", destinationc + "%"))
+	data = cursor.fetchall()
+	#print("data", data)
+	customer_info = []
+	cursor.close()
+	redirect = "home_agent"
+	staff = (False, customer_info)
+	return render_template('flight.html', posts=data, redirect = redirect, staff = staff)
+
 @app.route('/flight')
 def flight():
 
@@ -730,8 +777,6 @@ def create_flight():
 	acity = request.form['acity']
 	dtime = request.form['ddate'] + " " + request.form['dtime']
 	atime = request.form['adate'] + " " + request.form['atime']
-	print("Dtime", dtime)
-	print("atime", atime)
 
 	username = session['username']
 	auth = "SELECT airline_name, username FROM employment WHERE username = %s"

@@ -9,6 +9,10 @@
 	}
 </style>
 
+{%if error%}
+	<p class="error"><strong>Error:</strong> {{error}}</p>
+{%endif%}
+
 <table>
 	<th>Flight number</th>
 	<th>Departure time</th>

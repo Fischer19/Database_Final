@@ -4,7 +4,10 @@
 
 {% if error %}
 	<p class="error"><strong>Error:</strong> {{error}}</p>
+  <script type="text/javascript">window.alert("The tickets have been sold out")</script>
 {% endif %}
+
+{% if error == None %}
 
 <h2>Details of your chosen flight: </h2>
 
@@ -75,7 +78,7 @@
 
     }
   </script>
-
+{%endif%}
 
 <br>
 <a href="/home_Customer">Home Page</a>
