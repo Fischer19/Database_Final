@@ -309,13 +309,7 @@ def purchase():
 	query += " AND departure.city like %s AND arrival.city like %s"
 	cursor.execute(query, (dtime, atime, sourcea + "%", destinationa + "%", sourcec + "%", destinationc + "%"))
 	data = cursor.fetchall()
-#<<<<<<< HEAD
-	#use fetchall() if you are expecting more than 1 data row
-
-#=======
-	#print("data", data)
 	customer_info = []
-#>>>>>>> e98aeca96c9f70ad7cd63c1d563460afafda523e
 	cursor.close()
 	redirect = "home_agent"
 	staff = (False, customer_info)
@@ -602,11 +596,10 @@ def home_staff():
 	cursor.execute(query)
 
 	#--Use case 13. View top destinations--
-#<<<<<<< HEAD
+
 	query = 'CREATE VIEW top_destination_3m (destination, trips) AS SELECT airport.city, COUNT(order_info.flight_num) FROM order_info, arrival, airport WHERE order_info.flight_num = arrival.flight_num AND arrival.airport_name = airport.name AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -3 month) GROUP BY city'
-#=======
-	#query = 'CREATE VIEW top_destination_3m (destination, trips) AS SELECT city, COUNT(order_info.flight_num) FROM order_info, arrival WHERE order_info.flight_num = arrival.flight_num AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -3 month) GROUP BY city'
-#>>>>>>> e98aeca96c9f70ad7cd63c1d563460afafda523e
+#	query = 'CREATE VIEW top_destination_3m (destination, trips) AS SELECT city, COUNT(order_info.flight_num) FROM order_info, arrival WHERE order_info.flight_num = arrival.flight_num AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -3 month) GROUP BY city'
+
 	cursor.execute(query, (airline_name))
 	query = 'SELECT * FROM top_destination_3m ORDER BY trips DESC LIMIT 5'
 	cursor.execute(query)
@@ -614,11 +607,9 @@ def home_staff():
 	query = 'DROP VIEW top_destination_3m'
 	cursor.execute(query)
 
-#<<<<<<< HEAD
 	query = 'CREATE VIEW top_destination_y (destination, trips) AS SELECT airport.city, COUNT(order_info.flight_num) FROM order_info, arrival, airport WHERE order_info.flight_num = arrival.flight_num AND arrival.airport_name = airport.name AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) GROUP BY city'
-#=======
+
 	#query = 'CREATE VIEW top_destination_y (destination, trips) AS SELECT city, COUNT(order_info.flight_num) FROM order_info, arrival WHERE order_info.flight_num = arrival.flight_num AND order_info.airline_name = %s AND purchase_date_time > date_add(date(now()), INTERVAL -1 year) GROUP BY city'
-#>>>>>>> e98aeca96c9f70ad7cd63c1d563460afafda523e
 	cursor.execute(query, (airline_name))
 	query = 'SELECT * FROM top_destination_y ORDER BY trips DESC LIMIT 5'
 	cursor.execute(query)
