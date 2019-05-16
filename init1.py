@@ -117,6 +117,7 @@ def register_Staff():
 	cursor.execute(query, (username))
 	data = cursor.fetchone()
 	if(data):
+		print(data)
 		error = "You have an account, please login directly"
 		return render_template('register.html', error = error)
 	else:
@@ -309,6 +310,7 @@ def purchase():
 	#stores the results in a variable
 	data = cursor.fetchall()
 	#use fetchall() if you are expecting more than 1 data row
+
 	cursor.close()
 	return render_template('purchase.html', posts=data)
 
@@ -323,6 +325,16 @@ def purchaseAuth():
 	query = 'SELECT flight.flight_num flight_num, flight.airline_name airline_name, departure.airport_name dairport, arrival.time atime, arrival.airport_name aairport, departure.time dtime, base_price bprice FROM flight, departure, arrival WHERE flight.flight_num = %s AND departure.flight_num = %s AND arrival.flight_num = %s'
 	cursor.execute(query, (flight_num, flight_num, flight_num))
 	data = cursor.fetchone()
+
+
+	query = 'SELECT COUNT(*) count FROM order_info WHERE flight_num = %s'
+	cursor.execute(query, (flight_num))
+	tickets_sold = int(cursor.fetchone()['count'])
+	query = 'SELECT airplane.seats seats FROM flight, airplane WHERE flight.airplane_id = airplane.ID AND flight.flight_num = %s'
+	cursor.execute(query, (flight_num))
+	total_seats = int(cursor.fetchone()['seats'])
+	if tickets_sold > 0.7*total_seats:
+		data['bprice'] = str(int(data['bprice'] * 1.2))
 	return render_template("purchaseAuth.html", data=data)
 
 # After recording purchase information
@@ -353,43 +365,51 @@ def purchaseComplete():
 	cursor.execute(query, (FLIGHT_NUM))
 	airline_name = cursor.fetchone()['airline_name']
 
-	query = 'SELECT MAX(order_id) FROM order_info'
-	cursor.execute(query)
-	latest_order = int(cursor.fetchone()['MAX(order_id)'])
-	new_order_no = str(latest_order + 1).rjust(4,"0")
-
 	query = 'SELECT base_price FROM flight WHERE flight_num = %s'
 	cursor.execute(query, (FLIGHT_NUM))
-	sold_price =  int(cursor.fetchone()['base_price']) + float(commission)
+	base_price = cursor.fetchone()['base_price']
+
+	# Check 70% tickets sold
+	query = 'SELECT COUNT(*) count FROM order_info WHERE flight_num = %s'
+	cursor.execute(query, (FLIGHT_NUM))
+	tickets_sold = int(cursor.fetchone()['count'])
+	query = 'SELECT airplane.seats seats FROM flight, airplane WHERE flight.airplane_id = airplane.ID AND flight.flight_num = %s'
+	cursor.execute(query, (FLIGHT_NUM))
+	total_seats = int(cursor.fetchone()['seats'])
+	if tickets_sold > 0.7*total_seats:
+		sold_price = base_price * 1.2 + float(commission)
+	else:
+		sold_price =  base_price + float(commission)
+
+
 
 	purchase_time = str(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
 
-	print("sold_price:", sold_price)
 
-	if(latest_order):
+	query = 'SELECT MAX(order_id) max FROM order_info'
+	cursor.execute(query)
+	data = cursor.fetchone()
+	if data['max'] != None:
+		latest_order = int(data['max'])
+		new_order_no = str(latest_order + 1).rjust(4,"0")
 		ins = 'INSERT INTO order_info VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-		cursor.execute(ins,(new_order_no,FLIGHT_NUM,airline_name,purchase_time,card_exp_date,name_on_card,card_num,card_type,sold_price))
-		
+		cursor.execute(ins,(new_order_no,FLIGHT_NUM,airline_name,purchase_time,card_exp_date,name_on_card,card_num,card_type,sold_price))	
 	else:
 		new_order_no = "0001"
 		ins = 'INSERT INTO order_info VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s)'
 		cursor.execute(ins,(new_order_no,FLIGHT_NUM,airline_name,purchase_time,card_exp_date,name_on_card,card_num,card_type,sold_price))
 
-	query = 'SELECT ticket_ID FROM ticket WHERE ticket_ID like %s'
-	cursor.execute(query, (FLIGHT_NUM + "%"))
-	all_tickets = cursor.fetchall()
+	query = 'SELECT MAX(ticket_ID) max FROM ticket'
+	cursor.execute(query)
+	all_tickets = cursor.fetchone()
 	
 
-	if(all_tickets != ()):
-		final_ticket = all_tickets[0]['ticket_ID']
-		for dic in all_tickets:
-			if dic['ticket_ID'] > final_ticket:
-				final_ticket = dic['ticket_ID']
-		new_ticket = final_ticket[:-2] + str(int(final_ticket[-2])+1) + final_ticket[-1]
+	if(all_tickets['max'] != None):
+		new_ticket = int(all_tickets['max']) + 1
 		ins = 'INSERT INTO ticket VALUES(%s)'
-		cursor.execute(ins, (new_ticket))
+		cursor.execute(ins, (str(new_ticket)))
 	else:
-		new_ticket = FLIGHT_NUM + "-1A"
+		new_ticket = "1"
 		ins = 'INSERT INTO ticket VALUES(%s)'
 		cursor.execute(ins, (new_ticket))
  
