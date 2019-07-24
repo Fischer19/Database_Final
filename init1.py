@@ -11,7 +11,7 @@ FLIGHT_NUM = 'None'
 conn = pymysql.connect(host='192.168.64.2',
 #					   port=8080,
                        user='zjy',
-                       password='19970402zjy',
+                       password='',
                        db='airline_ticket_reservation',
                        charset='utf8mb4',
                        cursorclass=pymysql.cursors.DictCursor)
